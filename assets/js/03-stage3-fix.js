@@ -112,6 +112,10 @@
     stage3Dir = player.lane === before ? 0 : dir;
   }
 
+  // 화면 탭 조작(01-game.js의 handleScreenTap)에서 호출한다.
+  // 조작 버튼을 없앴기 때문에 이 함수가 스테이지3의 유일한 이동 경로다.
+  window.__sonyulMoveStage3 = moveStage3;
+
   if(touchBtns && touchBtns.length >= 2 && touchBtns[0].dataset.stage3ChurchGroundV4 !== '1'){
     touchBtns[0].dataset.stage3ChurchGroundV4 = '1';
     touchBtns[1].dataset.stage3ChurchGroundV4 = '1';

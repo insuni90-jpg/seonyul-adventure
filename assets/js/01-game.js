@@ -1847,6 +1847,12 @@ function startStage() {
   lives=3; starsCollected=0; starGoal=sc.starGoal; hearts=[];
   timeLeft=sc.timeLimit; obstacles=[]; coins=[]; particles=[];
   frameCount=0;
+  /* 캐릭터 기본 위치·크기를 매번 되돌린다.
+     스테이지3는 캐릭터를 화면 중앙(W/2)에 두고 좌우로 움직이는데,
+     예전에는 x를 초기화하지 않아 스테이지3를 하고 나면
+     스테이지1에서도 캐릭터가 중앙에 남아 다가오는 장애물을 볼 수 없었다.
+     (스테이지2·3는 바로 아래 initGame2/3에서 각자 값으로 덮어씀) */
+  player.x=80; player.w=110; player.h=90;
   player.lane=1; player.y=LANES[1]; player.targetY=LANES[1];
   gameSpeed=sc.speed; spawnRate=sc.spawnRate; minSpawn=sc.minSpawn;
   starInterval=sc.starInterval; doubleObsEnabled=sc.doubleObs;
@@ -1925,10 +1931,9 @@ const gameWrapperEl = document.getElementById('gameWrapper');
 if (gameWrapperEl) {
   gameWrapperEl.addEventListener('pointerdown', e => {
     if (e.target && e.target.closest && e.target.closest('#muteBtn')) return;
-    if (gameState === 'playing' && currentGame === 2) {
-      e.preventDefault();
-      handleTapJump();
-    }
+    if (gameState !== 'playing') return;
+    e.preventDefault();
+    handleScreenTap(e.clientX, e.clientY);   // 게임별 조작은 handleScreenTap이 판단
   }, {passive:false});
 }
 
@@ -1958,22 +1963,48 @@ canvas.addEventListener('touchend',e=>{
     setTimeout(()=>{keyState['ArrowUp']=false;keyState['ArrowDown']=false;},100);
   }
 },{passive:true});
-document.getElementById('btnUp').addEventListener('touchstart',e=>{
-  e.preventDefault();
-  if(currentGame===3) keyState['ArrowLeft']=true;
-  else keyState['ArrowUp']=true;
-},{passive:false});
-document.getElementById('btnUp').addEventListener('touchend',()=>{keyState['ArrowUp']=false;keyState['ArrowLeft']=false;});
-document.getElementById('btnDown').addEventListener('touchstart',e=>{
-  e.preventDefault();
-  if(currentGame===3) keyState['ArrowRight']=true;
-  else keyState['ArrowDown']=true;
-},{passive:false});
-document.getElementById('btnDown').addEventListener('touchend',()=>{keyState['ArrowDown']=false;keyState['ArrowRight']=false;});
-document.getElementById('btnUp').addEventListener('mousedown',()=>keyState['ArrowUp']=true);
-document.getElementById('btnUp').addEventListener('mouseup',()=>keyState['ArrowUp']=false);
-document.getElementById('btnDown').addEventListener('mousedown',()=>keyState['ArrowDown']=true);
-document.getElementById('btnDown').addEventListener('mouseup',()=>keyState['ArrowDown']=false);
+/* ═══ 화면 탭 조작 ═══
+   조작 버튼을 모두 없애고 화면을 직접 눌러 조작한다.
+   어느 위치에 버튼을 두든 캐릭터나 장애물을 가리는 문제가 있어서,
+   "가고 싶은 쪽(캐릭터 기준)을 누른다"는 방식으로 통일했다.
+
+     Stage1 (위/아래 3차선) : 캐릭터보다 위를 누르면 위, 아래를 누르면 아래
+     Stage2 (점프)          : 아무 데나 누르면 점프
+     Stage3 (좌/우 4차선)   : 캐릭터보다 왼쪽을 누르면 왼쪽, 오른쪽이면 오른쪽
+
+   캐릭터 기준이라 화면 어디를 눌러도 의도대로 동작한다.
+   (화면 절반으로 나누면 캐릭터가 아래 차선에 있을 때
+    "캐릭터 바로 위"를 눌러도 아래로 내려가는 혼란이 생긴다) */
+function gameCoordsFromPointer(clientX, clientY){
+  const r = gameWrapperEl.getBoundingClientRect();
+  if(!r.width || !r.height) return null;
+  return { x: (clientX - r.left) * (W / r.width), y: (clientY - r.top) * (H / r.height) };
+}
+
+function moveLaneBy(dir){
+  if(laneChangeCooldown > 0) return;
+  const next = player.lane + dir;
+  if(next < 0 || next > 2) return;
+  player.lane = next;
+  player.targetY = LANES[next];
+  laneChangeCooldown = 10;
+}
+
+function handleScreenTap(clientX, clientY){
+  if(gameState !== 'playing') return;
+  if(currentGame === 2){ handleTapJump(); return; }
+
+  const p = gameCoordsFromPointer(clientX, clientY);
+  if(!p) return;
+
+  if(currentGame === 1){
+    moveLaneBy(p.y < player.y ? -1 : 1);
+  } else if(currentGame === 3){
+    if(typeof window.__sonyulMoveStage3 === 'function'){
+      window.__sonyulMoveStage3(p.x < player.x ? -1 : 1);
+    }
+  }
+}
 
 // 별 생성
 (function(){
@@ -2743,6 +2774,22 @@ function drawObstacles() {
     if (hud && id !== null) { hud.classList.add('hidden'); hud.style.display='none'; }
     if (id === 'stageSelectScreen') setTimeout(applyClearStamps, 0);
     if (id === 'finalScreen') setTimeout(playFinalCelebration, 0);
+    if (id === 'stageIntroScreen') setTimeout(updateControlHint, 0);
+  }
+
+  /* 게임별 조작 안내.
+     인트로를 채우는 코드가 여러 곳에 흩어져 있어서,
+     모든 경로가 지나가는 directScreen에서 한 번만 갱신한다. */
+  const CONTROL_HINTS = {
+    1: '👆 화면 위 · 아래를 눌러 피해요',
+    2: '👆 화면을 톡 누르면 점프해요',
+    3: '👆 화면 왼쪽 · 오른쪽을 눌러 움직여요',
+  };
+  function updateControlHint() {
+    const el = q('introControlHint');
+    if (!el) return;
+    const g = Number(currentGame || selectedGame) || 1;
+    el.textContent = CONTROL_HINTS[g] || CONTROL_HINTS[1];
   }
 
   /* ── 엔딩 축하 연출: 색종이 + 폭죽 ── */

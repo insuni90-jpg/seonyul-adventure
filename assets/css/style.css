@@ -59,6 +59,16 @@
     animation:badgePop .5s .15s cubic-bezier(.175,.885,.32,1.275) both;
   }
 
+  /* 조작 안내 (버튼을 없앴으므로 눌러야 할 곳을 알려준다) */
+  .intro-control-hint{
+    font-size:13px;color:rgba(255,255,255,.72);
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:12px;padding:6px 16px;
+    margin-bottom:12px;position:relative;z-index:2;
+    animation:badgePop .5s .25s cubic-bezier(.175,.885,.32,1.275) both;
+  }
+
   .intro-scene-img{width:300px;max-height:390px;object-fit:contain;filter:drop-shadow(0 10px 30px rgba(79,195,247,.3));animation:sceneIn .6s .1s cubic-bezier(.175,.885,.32,1.275) both;position:relative;z-index:2;}
   @keyframes sceneIn{from{transform:scale(.85) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
   .intro-comment-box{background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);border:1.5px solid rgba(255,255,255,0.25);border-radius:20px;padding:12px 24px;text-align:center;margin-top:6px;animation:sceneIn .6s .35s both;box-shadow:0 4px 20px rgba(79,195,247,0.15);position:relative;z-index:2;}
@@ -300,27 +310,15 @@
 
   #damageFlash{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,50,50,.4);z-index:20;pointer-events:none;opacity:0;transition:opacity .1s;}
   #damageFlash.active{opacity:1;}
-  /* ── 조작 버튼 ──
-     Stage1: 캐릭터가 화면 왼쪽(x=80)에 고정이라, 위/아래 버튼을
-             오른쪽에 세로로 쌓아 캐릭터를 가리지 않게 한다.
-     Stage3: 캐릭터가 바닥을 좌우로 움직이므로 화면 맨 아래 양끝에 배치. */
-  #touchControls{
-    position:absolute; right:16px; bottom:88px; left:auto;
-    display:flex; flex-direction:column; gap:16px;
-    align-items:center; z-index:15; pointer-events:none;
+  /* 조작 버튼은 제거됨 — 화면을 직접 눌러 조작한다.
+     (어느 위치에 두어도 캐릭터나 장애물을 가리는 문제가 있었음)
+     게임 영역 전체가 조작면이므로 길게 눌렀을 때 텍스트 선택/확대가
+     일어나지 않도록 막는다. */
+  #gameWrapper{
+    touch-action:manipulation;
+    user-select:none; -webkit-user-select:none;
+    -webkit-touch-callout:none;
   }
-  #touchControls.hidden{display:none !important;}
-  .touch-btn{
-    width:80px;height:80px;border-radius:50%;
-    background:rgba(60,80,140,0.66);backdrop-filter:blur(10px);
-    border:2.5px solid rgba(255,255,255,0.32);
-    display:flex;align-items:center;justify-content:center;
-    font-size:30px;cursor:pointer;user-select:none;-webkit-user-select:none;
-    pointer-events:auto !important;touch-action:manipulation;
-    box-shadow:0 4px 20px rgba(0,0,0,0.4);
-    transition:transform .12s ease, background .12s ease;
-  }
-  .touch-btn:active{transform:scale(.92);background:rgba(90,120,200,0.8);}
 
   .game-card{position:relative;overflow:hidden;}
 
@@ -356,19 +354,3 @@
     text-shadow:0 0 8px rgba(57,231,95,.7);
   }
 
-  /* Stage3 전용: 좌우 버튼을 화면 맨 아래 양끝으로.
-     예전에는 bottom:112px라 바닥에 선 캐릭터(y 604~694)와 겹쳤다.
-     display는 지정하지 않는다 — 지정하면 .hidden(display:none)을 이겨버려서
-     버튼이 필요 없는 스테이지2에서도 계속 보이게 된다. */
-  #touchControls.stage3-mode{
-    flex-direction:row;
-    justify-content:space-between;
-    align-items:center;
-    left:0; right:0; bottom:20px;
-    padding:0 20px;
-  }
-  #touchControls.stage3-mode .touch-btn{
-    width:84px;
-    height:84px;
-    font-size:32px;
-  }

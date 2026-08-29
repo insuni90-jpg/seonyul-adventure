@@ -95,6 +95,7 @@
   <div id="stageIntroScreen" class="screen hidden">
     <div class="intro-stage-badge" id="introStageBadge">🏁 Stage 1</div>
     <div class="intro-goal-badge" id="introGoalBadge">⭐ 별 5개 수집 · ⏱️ 60초</div>
+    <div class="intro-control-hint" id="introControlHint">👆 화면을 눌러 조작해요</div>
 
     <div id="introScene1" style="display:none;flex-direction:column;align-items:center;gap:0;">
       <img class="intro-scene-img" src="assets/img/intro-grandpa.webp" alt="할아버지!">
@@ -188,10 +189,7 @@
     </div>
   </div>
 
-  <div id="touchControls" class="hidden">
-    <div class="touch-btn" id="btnUp">⬆️</div>
-    <div class="touch-btn" id="btnDown">⬇️</div>
-  </div>
+  <!-- 조작 버튼 없음: 화면을 눌러 조작한다 (가고 싶은 쪽을 누르면 이동) -->
   <div id="muteBtn" onclick="toggleMute(event)" title="음악 On/Off">🔊</div>
   <div id="damageFlash"></div>
 </div>
