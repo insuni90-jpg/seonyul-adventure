@@ -2381,10 +2381,10 @@ function drawStage2Decorations(groundY) {
   cloud(c1, 128, 0.95, 0.82);
   cloud(c2, 246, 0.72, 0.58);
 
-  // 무지개 아치
+  // 무지개 아치 — 언덕에 묻히지 않게 하늘 한가운데 높이로
   ctx.globalAlpha = 0.42;
   const rx = 42 - ((bgFarX * 0.06) % 80);
-  const ry = groundY - 210;
+  const ry = 255;                    // 아치 꼭대기 ~y255, 언덕(약 y470~)보다 훨씬 위
   const colors = ['#ff6b8a', '#ffd166', '#5ee074', '#5ecbff', '#a98bff'];
   colors.forEach((col, i) => {
     ctx.strokeStyle = col;
@@ -2419,24 +2419,6 @@ function drawStage2Decorations(groundY) {
     ctx.arc(sx + 15, sy, 8, Math.PI * 1.15, Math.PI * 1.9);
     ctx.stroke();
   }
-
-  // 나비 2마리 (8자 곡선으로 팔랑팔랑)
-  ctx.globalAlpha = 0.9;
-  [{cx:88, cy:groundY-190, col:'#ff8fb8', ph:0}, {cx:300, cy:groundY-158, col:'#a5b8ff', ph:2.4}]
-    .forEach(bf => {
-      const t = frameCount * 0.02 + bf.ph;
-      const bx2 = bf.cx + Math.sin(t) * 30;
-      const by2 = bf.cy + Math.sin(t * 2) * 13;
-      const flap = Math.abs(Math.sin(frameCount * 0.22 + bf.ph));   // 날갯짓
-      ctx.save();
-      ctx.translate(bx2, by2);
-      ctx.fillStyle = bf.col;
-      ctx.beginPath(); ctx.ellipse(-5, 0, 6, 4.5 + flap * 3.5, -0.5, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.ellipse( 5, 0, 6, 4.5 + flap * 3.5,  0.5, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#6a4a3a';
-      ctx.fillRect(-1.2, -4, 2.4, 9);
-      ctx.restore();
-    });
 
   ctx.restore();
 }
@@ -2532,22 +2514,26 @@ function drawKindergarten(baseY) {
     ctx.textBaseline = 'middle';
     ctx.fillText('내품에 어린이집', ox + 180, baseY - 151);
 
-    // 간판 양옆 두근두근 하트
+    // 간판 양옆 두근두근 하트 — 크게 뛰고(±25%) 위아래로 동동 떠다님
     function heart(hx, hy, s, phase) {
-      const beat = 1 + Math.sin(frameCount * 0.08 + phase) * 0.12;
+      const beat = 1 + Math.sin(frameCount * 0.09 + phase) * 0.25;
+      const bob  = Math.sin(frameCount * 0.05 + phase * 2) * 4;
       ctx.save();
-      ctx.translate(hx, hy);
+      ctx.translate(hx, hy + bob);
       ctx.scale(s * beat, s * beat);
       ctx.fillStyle = '#ff4f7e';
       ctx.beginPath();
       ctx.moveTo(0, 3);
-      ctx.bezierCurveTo(-6, -3, -12, 1, 0, 10);
-      ctx.bezierCurveTo(12, 1, 6, -3, 0, 3);
+      ctx.bezierCurveTo(-7, -4, -14, 1, 0, 12);
+      ctx.bezierCurveTo(14, 1, 7, -4, 0, 3);
       ctx.fill();
+      // 하이라이트 점
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      ctx.beginPath(); ctx.arc(-3.5, 0.5, 1.6, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
     }
-    heart(ox + 82, baseY - 156, 1.15, 0);
-    heart(ox + 278, baseY - 156, 1.15, 1.6);
+    heart(ox + 80, baseY - 158, 1.35, 0);
+    heart(ox + 280, baseY - 158, 1.35, 1.6);
 
     function win(wx, wy) {
       ctx.fillStyle = '#5EA4D0';
@@ -2601,55 +2587,90 @@ function drawKindergarten(baseY) {
       ctx.fill();
     }
 
-    /* ── 놀이터 (건물 옆 빈 구간 ox+340~600) ── */
+    /* ── 놀이터 (건물 옆 빈 구간 ox+345~605) ── */
 
-    // 그네 — A자 프레임 + 흔들리는 그네줄
-    const sgX = ox + 395, sgTop = baseY - 92;
-    ctx.strokeStyle = '#E7903C'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+    // 그네 — 좌우 똑같은 A자 프레임 2개 + 수평 탑바 (완전 대칭)
+    // 다리 꼭짓점은 탑바 바로 아래에서 만나고, 그 위에 둥근 조인트를 씌워 뾰족하지 않게
+    const sgC = ox + 400, sgTop = baseY - 90, sgHalf = 46;
+    ctx.strokeStyle = '#E7903C'; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.beginPath();
-    ctx.moveTo(sgX - 34, baseY); ctx.lineTo(sgX, sgTop);
-    ctx.lineTo(sgX + 34, baseY);
-    ctx.moveTo(sgX, sgTop); ctx.lineTo(sgX + 78, sgTop);
-    ctx.moveTo(sgX + 78, sgTop); ctx.lineTo(sgX + 44, baseY);
-    ctx.moveTo(sgX + 78, sgTop); ctx.lineTo(sgX + 112, baseY);
+    [-sgHalf, sgHalf].forEach(side => {                 // 같은 모양을 좌우로 미러링
+      const ax = sgC + side;
+      ctx.moveTo(ax - 22, baseY + 2); ctx.lineTo(ax, sgTop + 3);   // 꼭짓점을 탑바 밑으로
+      ctx.lineTo(ax + 22, baseY + 2);
+      ctx.moveTo(ax - 11, baseY - 44); ctx.lineTo(ax + 11, baseY - 44);   // A자 가로 보강대
+    });
+    ctx.moveTo(sgC - sgHalf - 8, sgTop); ctx.lineTo(sgC + sgHalf + 8, sgTop);   // 탑바
     ctx.stroke();
+    ctx.lineJoin = 'miter';
     ctx.lineCap = 'butt';
-    // 그네줄 + 앉는 판 (살랑살랑)
-    const swing = Math.sin(frameCount * 0.04) * 9;
+    // 둥근 조인트 캡 — 꼭짓점의 뾰족한 모서리를 덮음
+    ctx.fillStyle = '#D8813A';
+    [-sgHalf, sgHalf].forEach(side => {
+      ctx.beginPath(); ctx.arc(sgC + side, sgTop + 1, 6.5, 0, Math.PI * 2); ctx.fill();
+    });
+    // 그네줄 + 앉는 판 (탑바 중앙에 매달려 진자처럼 흔들림)
+    const swingAng = Math.sin(frameCount * 0.045) * 0.22;   // 흔들림 각도
+    const ropeLen = 58;
     ctx.strokeStyle = '#8A6A4A'; ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(sgX + 30, sgTop + 2); ctx.lineTo(sgX + 30 + swing, baseY - 26);
-    ctx.moveTo(sgX + 50, sgTop + 2); ctx.lineTo(sgX + 50 + swing, baseY - 26);
-    ctx.stroke();
-    ctx.fillStyle = '#D8543E';
-    ctx.fillRect(sgX + 25 + swing, baseY - 27, 30, 6);
-
-    // 미끄럼틀 — 사다리 + 노란 슬라이드
-    const slX = ox + 540;
-    ctx.fillStyle = '#E06030'; ctx.fillRect(slX, baseY - 86, 12, 86);       // 사다리 기둥
-    ctx.strokeStyle = '#B84020'; ctx.lineWidth = 2.5;
-    for (let g2 = 0; g2 < 5; g2++) {
+    [-11, 11].forEach(dr => {
       ctx.beginPath();
-      ctx.moveTo(slX - 4, baseY - 14 - g2 * 15);
-      ctx.lineTo(slX + 16, baseY - 14 - g2 * 15);
+      ctx.moveTo(sgC + dr, sgTop + 3);
+      ctx.lineTo(sgC + dr + Math.sin(swingAng) * ropeLen, sgTop + 3 + Math.cos(swingAng) * ropeLen);
       ctx.stroke();
-    }
-    ctx.fillStyle = '#E06030'; ctx.fillRect(slX - 4, baseY - 92, 34, 10);   // 꼭대기 발판
-    ctx.fillStyle = '#FFD700';                                              // 슬라이드 면
+    });
+    ctx.fillStyle = '#D8543E';
+    const seatX = sgC + Math.sin(swingAng) * ropeLen;
+    const seatY = sgTop + 3 + Math.cos(swingAng) * ropeLen;
+    ctx.save();
+    ctx.translate(seatX, seatY);
+    ctx.rotate(swingAng * 0.5);
+    ctx.fillRect(-16, 0, 32, 6);
+    ctx.restore();
+
+    // 미끄럼틀 — 사다리·플랫폼·슬라이드가 하나로 이어진 구조
+    const slX = ox + 505, slTop = baseY - 82;
+    // 사다리 (기둥 2개 + 가로대)
+    ctx.strokeStyle = '#E06030'; ctx.lineWidth = 5; ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(slX + 26, baseY - 86);
-    ctx.lineTo(slX + 86, baseY - 2);
-    ctx.lineTo(slX + 102, baseY - 2);
-    ctx.lineTo(slX + 42, baseY - 86);
+    ctx.moveTo(slX,      baseY + 2); ctx.lineTo(slX,      slTop - 4);
+    ctx.moveTo(slX + 18, baseY + 2); ctx.lineTo(slX + 18, slTop - 4);
+    ctx.stroke();
+    ctx.lineWidth = 3;
+    for (let g2 = 1; g2 <= 4; g2++) {
+      const gy = baseY - g2 * 16;
+      ctx.beginPath(); ctx.moveTo(slX, gy); ctx.lineTo(slX + 18, gy); ctx.stroke();
+    }
+    ctx.lineCap = 'butt';
+    // 플랫폼 — 사다리 꼭대기부터 슬라이드 시작점까지 걸쳐서 연결
+    ctx.fillStyle = '#D8543E';
+    roundRect(ctx, slX - 4, slTop - 10, 52, 10, 3); ctx.fill();
+    // 플랫폼 난간
+    ctx.strokeStyle = '#B84020'; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(slX - 2, slTop - 10); ctx.lineTo(slX - 2, slTop - 26);
+    ctx.lineTo(slX + 30, slTop - 26); ctx.lineTo(slX + 30, slTop - 10);
+    ctx.stroke();
+    // 슬라이드 면 — 플랫폼 오른쪽 끝(slX+44)에서 곧장 이어짐
+    ctx.fillStyle = '#FFD700';
+    ctx.beginPath();
+    ctx.moveTo(slX + 30, slTop - 2);            // 플랫폼 윗면과 같은 높이에서 시작
+    ctx.lineTo(slX + 48, slTop - 2);
+    ctx.lineTo(slX + 100, baseY + 2);
+    ctx.lineTo(slX + 78, baseY + 2);
     ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = '#E8B800'; ctx.lineWidth = 2.5;
-    ctx.beginPath(); ctx.moveTo(slX + 26, baseY - 86); ctx.lineTo(slX + 86, baseY - 2); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(slX + 42, baseY - 86); ctx.lineTo(slX + 102, baseY - 2); ctx.stroke();
+    // 슬라이드 양쪽 가드 레일
+    ctx.strokeStyle = '#E8B800'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(slX + 32, slTop - 4); ctx.lineTo(slX + 80, baseY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(slX + 48, slTop - 4); ctx.lineTo(slX + 100, baseY); ctx.stroke();
+    // 슬라이드 중간 지지 기둥
+    ctx.strokeStyle = '#B84020'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(slX + 66, baseY - 38); ctx.lineTo(slX + 66, baseY + 2); ctx.stroke();
 
     // 놀이터 바닥 꽃
     const kfCols = ['#ff6b8a', '#ffd166', '#ff9fe0', '#8fc7ff'];
     for (let fi = 0; fi < 7; fi++) {
-      const fx = ox + 330 + fi * 42;
+      const fx = ox + 335 + fi * 40;
       ctx.fillStyle = '#4CAF50';
       ctx.fillRect(fx - 1, baseY - 9, 2, 9);
       ctx.fillStyle = kfCols[fi % kfCols.length];
@@ -3442,17 +3463,16 @@ function drawStage2Decorations(groundY) {
   cloud(230, 145, 0.9, 0.72);
   cloud(145, 270, 0.72, 0.5);
 
-  // Rainbow fully visible (moved inward)
+  // 무지개 — 언덕(y470~)에 안 묻히게 하늘 중간 높이에 통째로 띄움
   ctx.globalAlpha = 0.38;
   const rx = 110;
-  const ry = groundY - 165;
   const rainbowColors = ['#ff6b8a','#ffd166','#7ae582','#5ecbff','#a98bff'];
 
   rainbowColors.forEach((col, i) => {
     ctx.strokeStyle = col;
     ctx.lineWidth = 5;
     ctx.beginPath();
-    ctx.arc(rx, ry + 82, 84 - i * 8, Math.PI * 1.05, Math.PI * 1.95);
+    ctx.arc(rx, 415, 84 - i * 8, Math.PI * 1.05, Math.PI * 1.95);   // 호 최고점 y≈331
     ctx.stroke();
   });
 
@@ -3501,6 +3521,36 @@ function drawStage2Decorations(groundY) {
     ctx.arc(sx + 15, sy, 8, Math.PI * 1.15, Math.PI * 1.9);
     ctx.stroke();
   }
+
+  // 나비 2마리 — 훤히 트인 하늘(y 340~430)을 가로질러 팔랑팔팔랑
+  // 언덕(y470~)·무지개(y330 위)·건물과 안 겹치는 높이라 늘 또렷이 보임
+  ctx.globalAlpha = 1;
+  [{y:352, spd:0.45, col:'#ff6fa8', wing:'#ffd3e6', ph:0,   s:1.5},
+   {y:425, spd:0.34, col:'#7f95ff', wing:'#d3dcff', ph:210, s:1.2}]
+    .forEach(bf => {
+      const bx2 = ((frameCount * bf.spd + bf.ph) % (W + 120)) - 60;   // 화면을 계속 가로질러 감
+      const by2 = bf.y + Math.sin(frameCount * 0.06 + bf.ph) * 12;
+      const flap = Math.abs(Math.sin(frameCount * 0.25 + bf.ph));     // 날갯짓
+      ctx.save();
+      ctx.translate(bx2, by2);
+      ctx.scale(bf.s, bf.s);
+      ctx.rotate(Math.sin(frameCount * 0.06 + bf.ph) * 0.18);
+      // 뒷날개 (밝은 색)
+      ctx.fillStyle = bf.wing;
+      ctx.beginPath(); ctx.ellipse(-4.5, 3, 4.5, 3.5 + flap * 2, -0.7, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse( 4.5, 3, 4.5, 3.5 + flap * 2,  0.7, 0, Math.PI*2); ctx.fill();
+      // 앞날개 (진한 색)
+      ctx.fillStyle = bf.col;
+      ctx.beginPath(); ctx.ellipse(-5.5, -1, 6.5, 5 + flap * 4, -0.5, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse( 5.5, -1, 6.5, 5 + flap * 4,  0.5, 0, Math.PI*2); ctx.fill();
+      // 몸통 + 더듬이
+      ctx.fillStyle = '#5a4a3a';
+      ctx.beginPath(); ctx.ellipse(0, 1, 1.6, 5.5, 0, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#5a4a3a'; ctx.lineWidth = 0.9;
+      ctx.beginPath(); ctx.moveTo(-0.6, -4); ctx.quadraticCurveTo(-3, -8.5, -4.5, -8); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo( 0.6, -4); ctx.quadraticCurveTo( 3, -8.5,  4.5, -8); ctx.stroke();
+      ctx.restore();
+    });
 
   ctx.restore();
 }
