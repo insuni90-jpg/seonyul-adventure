@@ -42,6 +42,17 @@
   <!-- 스테이지 선택 화면 -->
   <div id="stageSelectScreen" class="screen hidden">
     <p class="select-title">🎮 게임 선택</p>
+
+    <!-- 진행도: 3개 중 몇 개 깼는지 -->
+    <div class="select-progress">
+      <div class="progress-dots">
+        <span class="pdot" data-g="1"></span>
+        <span class="pdot" data-g="2"></span>
+        <span class="pdot" data-g="3"></span>
+      </div>
+      <div class="progress-text" id="progressText">0 / 3 완료</div>
+    </div>
+
     <div class="game-cards">
       <div class="game-card g1" data-game="1">
         <div class="card-icon">🏎️</div>
@@ -142,16 +153,39 @@
 
   <!-- FINAL -->
   <div id="finalScreen" class="screen hidden">
-    <div class="final-title">🏆 어드벤처 완료!</div>
-    <div class="final-subtitle">선율이가 모든 가족을 만났어요! 🥰</div>
-    <div class="final-gallery">
-      <div class="final-photo"><img src="assets/img/reunion-grandpa.webp" alt="할아버지"></div>
-      <div class="final-photo" style="border-color:#f093fb;"><img src="assets/img/reunion-grandma-maternal.webp" alt="외할머니"></div>
-      <div class="final-photo" style="border-color:#00cec9;"><img src="assets/img/reunion-grandma-paternal.webp" alt="친할머니"></div>
+    <!-- 축하 연출 레이어 (JS가 채움) -->
+    <div class="final-rays"></div>
+    <div class="final-confetti" id="finalConfetti"></div>
+    <div class="final-fireworks" id="finalFireworks"></div>
+
+    <div class="final-inner">
+      <div class="final-trophy">🏆</div>
+      <div class="final-title">어드벤처 완료!</div>
+      <div class="final-subtitle">선율이가 모든 가족을 만났어요! 🥰</div>
+
+      <div class="final-gallery">
+        <div class="final-photo-wrap">
+          <div class="final-photo"><img src="assets/img/reunion-grandpa.webp" alt="할아버지"></div>
+          <div class="final-photo-label">할아버지</div>
+        </div>
+        <div class="final-photo-wrap">
+          <div class="final-photo" style="border-color:#f093fb;"><img src="assets/img/reunion-grandma-maternal.webp" alt="외할머니"></div>
+          <div class="final-photo-label">외할머니</div>
+        </div>
+        <div class="final-photo-wrap">
+          <div class="final-photo" style="border-color:#00cec9;"><img src="assets/img/reunion-grandma-paternal.webp" alt="친할머니"></div>
+          <div class="final-photo-label">친할머니</div>
+        </div>
+      </div>
+
+      <div class="final-hero">
+        <div class="final-glow"></div>
+        <img class="final-sonyul" src="assets/img/sonyul.webp" alt="선율">
+      </div>
+
+      <div class="final-msg">할아버지, 외할머니, 친할머니<br>모두 선율이를 사랑해요! 💕</div>
+      <button class="home-btn" >🏠 처음으로</button>
     </div>
-    <img class="final-sonyul" src="assets/img/sonyul.webp" alt="선율">
-    <div class="final-msg">할아버지, 외할머니, 친할머니<br>모두 선율이를 사랑해요! 💕</div>
-    <button class="home-btn" >🏠 처음으로</button>
   </div>
 
   <div id="touchControls" class="hidden">

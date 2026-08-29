@@ -568,6 +568,38 @@ function tFence(tc,x1,y,x2){
   tc.fillStyle='white'; tc.fillRect(x1,y-3,x2-x1,5); tc.fillRect(x1,y-18,x2-x1,5);
   for(let px=x1;px<=x2;px+=16){tc.fillRect(px,y-20,7,22);tc.beginPath();tc.moveTo(px,y-20);tc.lineTo(px+3.5,y-27);tc.lineTo(px+7,y-20);tc.closePath();tc.fill();}
 }
+// 하늘 반짝임 — 네 갈래 별빛
+function tSparkle(tc,x,y,r,alpha){
+  tc.save();
+  tc.globalAlpha=alpha*0.9;
+  tc.fillStyle='#ffffff';
+  tc.beginPath();
+  tc.moveTo(x,y-r);
+  tc.quadraticCurveTo(x+r*0.22,y-r*0.22, x+r,y);
+  tc.quadraticCurveTo(x+r*0.22,y+r*0.22, x,y+r);
+  tc.quadraticCurveTo(x-r*0.22,y+r*0.22, x-r,y);
+  tc.quadraticCurveTo(x-r*0.22,y-r*0.22, x,y-r);
+  tc.fill();
+  tc.restore();
+}
+
+// 새 — 날개 퍼덕이는 갈매기 형태
+function tBird(tc,x,y,sc,frame){
+  const flap=Math.sin(frame*0.13)*0.42;   // 날갯짓
+  const w=11*sc, h=5.5*sc;
+  tc.save();
+  tc.translate(x,y);
+  tc.strokeStyle='rgba(40,52,80,0.72)';
+  tc.lineWidth=2.1*sc;
+  tc.lineCap='round';
+  tc.beginPath();
+  tc.moveTo(-w, h*flap);
+  tc.quadraticCurveTo(-w*0.42,-h, 0, h*0.16);
+  tc.quadraticCurveTo( w*0.42,-h, w, h*flap);
+  tc.stroke();
+  tc.restore();
+}
+
 function drawTitleBg(){
   const el=document.getElementById('titleBgCanvas');
   if(!el||gameState!=='title'){titleRafId=null;return;}
@@ -590,6 +622,13 @@ function drawTitleBg(){
     tc.stroke();
   });
   tc.globalAlpha=1;
+
+  // ── 새 (무지개 위쪽 빈 하늘을 가로질러 감. 태양보다 먼저 그려서 해 뒤로 지나가게)
+  [{y:52,spd:0.55,sc:1.0,off:0},{y:74,spd:0.42,sc:0.76,off:180},{y:38,spd:0.68,sc:0.6,off:330}]
+    .forEach(bd=>{
+      const bx=((titleFC*bd.spd+bd.off)%500)-55;
+      tBird(tc,bx,bd.y+Math.sin(titleFC*0.045+bd.off)*4,bd.sc,titleFC+bd.off);
+    });
 
   // ── 태양 (왼쪽 상단, 무지개와 겹치지 않게)
   const sx=48,sy=65;
@@ -616,6 +655,13 @@ function drawTitleBg(){
   [{ox:100,y:290,sc:1.0,spd:0.25},{ox:255,y:268,sc:0.78,spd:0.17},{ox:40,y:318,sc:0.88,spd:0.21}].forEach(cd=>{
     tCloud(tc,((cd.ox+titleFC*cd.spd)%520)-60,cd.y,cd.sc);
   });
+
+  // ── 하늘 반짝임 (무지개 띠 위에서 깜빡임)
+  [[112,118,0],[268,104,1.7],[318,146,3.4],[76,152,2.3],[232,132,4.6],[160,96,1.1]]
+    .forEach(([px,py,ph])=>{
+      const tw=0.45+0.55*Math.abs(Math.sin(titleFC*0.035+ph));
+      tSparkle(tc,px,py,3.2+tw*2.4,tw);
+    });
 
   // ── 뒷 언덕 (연두)
   tc.fillStyle='#72C84A';
@@ -2632,6 +2678,69 @@ function drawObstacles() {
     const hud = q('hud');
     if (hud && id !== null) { hud.classList.add('hidden'); hud.style.display='none'; }
     if (id === 'stageSelectScreen') setTimeout(applyClearStamps, 0);
+    if (id === 'finalScreen') setTimeout(playFinalCelebration, 0);
+  }
+
+  /* ── 엔딩 축하 연출: 색종이 + 폭죽 ── */
+  let finalFwTimer = null;
+  function playFinalCelebration() {
+    const COLORS = ['#f0c040','#39e75f','#4fc3f7','#f093fb','#ff7675','#fdcb6e','#a29bfe'];
+    const pick = function(){ return COLORS[Math.floor(Math.random()*COLORS.length)]; };
+
+    // 색종이 — 위에서 계속 떨어짐
+    const cc = q('finalConfetti');
+    if (cc) {
+      cc.innerHTML = '';
+      for (let i=0;i<70;i++){
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.cssText =
+          'left:'+(Math.random()*100)+'%;'+
+          'background:'+pick()+';'+
+          'width:'+(5+Math.random()*8)+'px;'+
+          'height:'+(5+Math.random()*8)+'px;'+
+          'animation-duration:'+(2.4+Math.random()*2.6)+'s;'+
+          'animation-delay:'+(Math.random()*3.5)+'s;'+
+          'border-radius:'+(Math.random()>.5?'50%':'2px')+';';
+        cc.appendChild(el);
+      }
+    }
+
+    // 폭죽 — 한 번 터지고 주기적으로 반복
+    const fw = q('finalFireworks');
+    if (!fw) return;
+    fw.innerHTML = '';
+    if (finalFwTimer) { clearInterval(finalFwTimer); finalFwTimer = null; }
+
+    function burst(cx, cy) {
+      const color = pick();
+      const n = 14;
+      for (let i=0;i<n;i++){
+        const ang = (Math.PI*2*i)/n + Math.random()*0.3;
+        const dist = 42 + Math.random()*46;
+        const p = document.createElement('div');
+        p.className = 'fw';
+        p.style.cssText =
+          'left:'+cx+'%;top:'+cy+'%;background:'+color+';'+
+          'box-shadow:0 0 8px '+color+';'+
+          '--dx:'+(Math.cos(ang)*dist)+'px;'+
+          '--dy:'+(Math.sin(ang)*dist)+'px;';
+        fw.appendChild(p);
+        setTimeout(function(){ if(p.parentNode) p.parentNode.removeChild(p); }, 1300);
+      }
+    }
+    function volley() {
+      // 화면이 안 보이면 연출 중단 (불필요한 동작 방지)
+      const scr = q('finalScreen');
+      if (!scr || scr.classList.contains('hidden')) {
+        if (finalFwTimer) { clearInterval(finalFwTimer); finalFwTimer = null; }
+        return;
+      }
+      burst(18+Math.random()*20, 16+Math.random()*18);
+      setTimeout(function(){ burst(62+Math.random()*20, 14+Math.random()*20); }, 260);
+    }
+    setTimeout(volley, 350);
+    finalFwTimer = setInterval(volley, 2200);
   }
 
   function setGame(n) {
@@ -2649,12 +2758,29 @@ function drawObstacles() {
   }
 
   function applyClearStamps() {
+    let done = 0;
     document.querySelectorAll('.game-card').forEach(function(card){
       const g = card.getAttribute('data-game') ||
         (card.classList.contains('g1') ? '1' : card.classList.contains('g2') ? '2' : card.classList.contains('g3') ? '3' : '');
-      if (clearState[g]) card.classList.add('cleared');
+      if (clearState[g]) { card.classList.add('cleared'); done++; }
       else card.classList.remove('cleared');
     });
+    updateProgress(done);
+  }
+
+  // 진행도 점 + "n / 3 완료" 갱신
+  function updateProgress(done) {
+    document.querySelectorAll('.pdot').forEach(function(dot){
+      const g = dot.getAttribute('data-g');
+      if (clearState[g]) dot.classList.add('done');
+      else dot.classList.remove('done');
+    });
+    const txt = q('progressText');
+    if (txt) {
+      const all = done >= 3;
+      txt.textContent = all ? '🏆 전부 클리어!' : (done + ' / 3 완료');
+      txt.classList.toggle('complete', all);
+    }
   }
 
   function fillIntro(n) {
@@ -2682,11 +2808,23 @@ function drawObstacles() {
     try { clearInterval(timerInterval); } catch(e) {}
     try { cancelAnimationFrame(rafId); } catch(e) {}
     try { cancelAnimationFrame(titleRafId); titleRafId=null; } catch(e) {}
+    resetProgress();
     gameState = 'title';
     directScreen('titleScreen');
     try { titleRafId = requestAnimationFrame(drawTitleBg); } catch(e) {}
     safePlay();
     return false;
+  }
+
+  /* 처음으로 돌아갈 때 클리어 기록 초기화.
+     이걸 안 하면 한 번 엔딩을 본 뒤에는 한 판만 깨도 곧장 엔딩으로 넘어간다
+     (04-final-flow-fix.js가 3개 완료 여부만 보고 판단하기 때문). */
+  function resetProgress() {
+    Object.keys(clearState).forEach(function(k){ delete clearState[k]; });
+    try { if (window.__sonyulCompletedGames) window.__sonyulCompletedGames.clear(); } catch(e) {}
+    try { if (typeof clearedGames !== 'undefined' && clearedGames.clear) clearedGames.clear(); } catch(e) {}
+    selectedGame = 1;
+    try { currentGame = 1; currentStage = 1; } catch(e) {}
   }
 
   function goIntro(n, ev) {
