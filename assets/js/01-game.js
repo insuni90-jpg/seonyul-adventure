@@ -27,8 +27,8 @@ const player = { x:80, y:LANES[1], w:110, h:90, lane:1, targetY:LANES[1] };
 
 const sonyulImg = new Image();
 const sonyulActionImg = new Image();
-sonyulActionImg.src = 'assets/img/sonyul-action.png';
-sonyulImg.src = "assets/img/sonyul.png";
+sonyulActionImg.src = 'assets/img/sonyul-action.webp';
+sonyulImg.src = "assets/img/sonyul.webp";
 
 let obstacles=[], coins=[], particles=[], hearts=[];
 let bgX=0, bgFarX=0, frameCount=0, gameSpeed=4, spawnRate=88, minSpawn=65, laneChangeCooldown=0;
