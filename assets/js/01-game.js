@@ -3463,22 +3463,19 @@ function drawStage2Decorations(groundY) {
   cloud(230, 145, 0.9, 0.72);
   cloud(145, 270, 0.72, 0.5);
 
-  // 무지개 — 양 끝을 뭉게구름으로 받쳐 "구름 사이에 걸린 무지개"로
-  // (하늘에 덩그러니 떠 있으면 어색해서, 동화 그림처럼 구름에서 나오게)
+  // 무지개 — 타이틀 화면처럼 화면 전체를 가로지르는 거대한 아치.
+  // 양 끝이 화면 밖으로 이어져서 "하늘에 걸린" 느낌 (덩그러니 떠 있지 않음)
   ctx.globalAlpha = 0.38;
-  const rx = 110;
   const rainbowColors = ['#ff6b8a','#ffd166','#7ae582','#5ecbff','#a98bff'];
 
   rainbowColors.forEach((col, i) => {
     ctx.strokeStyle = col;
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 6;
     ctx.beginPath();
-    ctx.arc(rx, 415, 84 - i * 8, Math.PI * 1.05, Math.PI * 1.95);   // 호 최고점 y≈331
+    // 중심을 화면 아래(밖)에 두고 반지름을 크게 -> 꼭대기 y≈220, 좌우 끝은 화면 밖
+    ctx.arc(W / 2, 620, 400 - i * 9, Math.PI, Math.PI * 2);
     ctx.stroke();
   });
-  // 호 양 끝 지점(≈(27,402), (193,402))을 덮는 받침 구름
-  cloud(8, 404, 0.52, 0.9);
-  cloud(172, 406, 0.58, 0.9);
 
   // Balloon
   ctx.globalAlpha = 0.82;
