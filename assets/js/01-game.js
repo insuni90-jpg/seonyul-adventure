@@ -1105,80 +1105,252 @@ function drawStageBuildings() {
   else                        drawChurch(baseY);
 }
 
-/* ── Stage 1: POSCO 광양 제철소 ── */
+/* ── Stage 1: POSCO 제철소 (외할아버지의 일터) ──
+   컨셉: 밤에도 쉬지 않고 돌아가는 웅장한 제철소.
+   구성: [하늘 한 번] 달·추가 별·지평선 불빛 글로우
+         [원경 패럴랙스] 멀리 보이는 공장 지대 실루엣 (느리게 흐름)
+         [근경 패턴] 송전탑 → 메인 공장(톱니 지붕) → 굴뚝 → 용광로(스파크)
+                     → 냉각탑(수증기) → 보조 공장동 → 크레인                */
 function drawPOSCO(baseY) {
+
+  /* ── 하늘 요소 (스크롤 안 함, 화면 고정) ── */
+  // 지평선 위 은은한 주황 글로우 — 제철소 불빛이 하늘에 번진 느낌
+  const hg = ctx.createLinearGradient(0, baseY-150, 0, baseY);
+  hg.addColorStop(0,'rgba(255,120,40,0)');
+  hg.addColorStop(1,'rgba(255,120,40,0.13)');
+  ctx.fillStyle = hg; ctx.fillRect(0, baseY-150, W, 150);
+
+  // 초승달
+  ctx.save();
+  ctx.fillStyle = '#f5edc8';
+  ctx.shadowColor = 'rgba(245,237,200,0.6)'; ctx.shadowBlur = 18;
+  ctx.beginPath(); ctx.arc(322, 62, 20, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = SKY_COLORS[0][0];        // 하늘색으로 파먹어 초승달 모양
+  ctx.beginPath(); ctx.arc(313, 56, 17, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  // 추가 잔별 (기존 7개는 drawBackground가 그림)
+  ctx.fillStyle = '#fff';
+  [[28,158],[95,72],[168,45],[228,132],[268,58],[356,150],[140,168],[310,108]].forEach(([sx,sy],i)=>{
+    ctx.globalAlpha = 0.25 + 0.45*Math.abs(Math.sin(frameCount*0.03 + i*1.7));
+    ctx.fillRect(sx, sy, 2, 2);
+  });
+  ctx.globalAlpha = 1;
+
+  /* ── 원경: 먼 공장 지대 실루엣 (근경의 40% 속도 패럴랙스) ── */
+  const farW = 520;
+  const farOff = Math.floor((bgFarX*0.4) % farW);
+  ctx.fillStyle = '#101b2a';
+  for(let r=-1; r<=Math.ceil(W/farW)+1; r++){
+    const fx = -farOff + r*farW;
+    ctx.fillRect(fx+20,  baseY-138, 90, 138);
+    ctx.fillRect(fx+96,  baseY-190, 16, 190);   // 먼 굴뚝
+    ctx.fillRect(fx+150, baseY-112, 120, 112);
+    ctx.fillRect(fx+240, baseY-165, 14, 165);   // 먼 굴뚝2
+    ctx.fillRect(fx+310, baseY-95, 80, 95);
+    ctx.fillRect(fx+420, baseY-148, 70, 148);
+    // 먼 건물 불빛 점
+    ctx.fillStyle = 'rgba(255,190,90,0.35)';
+    [[fx+40,110],[fx+70,86],[fx+180,74],[fx+205,52],[fx+340,60],[fx+445,96],[fx+460,120]].forEach(([lx,ly])=>{
+      ctx.fillRect(lx, baseY-ly, 4, 4);
+    });
+    ctx.fillStyle = '#101b2a';
+  }
+
+  /* ── 근경 패턴 ── */
   const patW = 860;
   const off  = Math.floor(bgFarX % patW);
   for(let r=-1; r<=Math.ceil(W/patW)+1; r++) {
     const ox = -off + r*patW;
 
-    // 용광로 글로우
-    const glow = ctx.createRadialGradient(ox+340,baseY,0,ox+340,baseY,180);
-    glow.addColorStop(0,'rgba(255,110,20,0.18)');
+    // 용광로 글로우 (바닥에서 올라오는 불빛)
+    const glow = ctx.createRadialGradient(ox+340,baseY,0,ox+340,baseY,190);
+    glow.addColorStop(0,'rgba(255,110,20,0.22)');
     glow.addColorStop(1,'rgba(255,110,20,0)');
-    ctx.fillStyle=glow; ctx.fillRect(ox+160,baseY-180,360,180);
+    ctx.fillStyle=glow; ctx.fillRect(ox+150,baseY-190,380,190);
 
-    // 메인 공장 동체
+    // ── 송전탑 (패턴 앞머리 빈 공간)
+    ctx.strokeStyle='#22374c'; ctx.lineWidth=2.5;
+    const tX=ox+745, tTop=baseY-150;
+    ctx.beginPath();
+    ctx.moveTo(tX-24,baseY); ctx.lineTo(tX,tTop); ctx.lineTo(tX+24,baseY);   // 기둥
+    ctx.moveTo(tX-17,baseY-46); ctx.lineTo(tX+17,baseY-46);                   // 가로대
+    ctx.moveTo(tX-11,baseY-95); ctx.lineTo(tX+11,baseY-95);
+    ctx.moveTo(tX-30,baseY-118); ctx.lineTo(tX+30,baseY-118);                 // 팔
+    ctx.moveTo(tX-17,baseY-46); ctx.lineTo(tX+11,baseY-95);                   // X 브레이스
+    ctx.moveTo(tX+17,baseY-46); ctx.lineTo(tX-11,baseY-95);
+    ctx.stroke();
+    // 항공 장애등 (빨간 점멸)
+    ctx.fillStyle=`rgba(255,60,60,${0.35+0.55*Math.abs(Math.sin(frameCount*0.05))})`;
+    ctx.beginPath(); ctx.arc(tX,tTop-3,3.5,0,Math.PI*2); ctx.fill();
+    // 전선 (다음 패턴의 탑으로 늘어짐)
+    ctx.strokeStyle='rgba(80,110,140,0.5)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(tX+30,baseY-118);
+    ctx.quadraticCurveTo(tX+ patW/2, baseY-78, tX+patW-60, baseY-118); ctx.stroke();
+
+    // ── 메인 공장 동체 + 톱니 지붕
     ctx.fillStyle='#1b2d3e'; ctx.fillRect(ox+30,baseY-105,265,105);
+    ctx.fillStyle='#22394e';
+    for(let s2=0;s2<4;s2++){                         // 톱니(새우등) 지붕
+      const sx2=ox+30+s2*66;
+      ctx.beginPath();
+      ctx.moveTo(sx2,baseY-105); ctx.lineTo(sx2+40,baseY-128); ctx.lineTo(sx2+66,baseY-105);
+      ctx.closePath(); ctx.fill();
+    }
     ctx.fillStyle='#12202e';
     ctx.fillRect(ox+30,baseY-105,75,105);
     ctx.fillRect(ox+160,baseY-105,55,105);
 
-    // 내부 창문 (오렌지 글로우)
+    // 내부 창문 (오렌지 글로우 — 야간 조업 중)
     const wc=`rgba(255,${110+Math.sin(frameCount*0.06)*25|0},15,0.85)`;
     ctx.fillStyle=wc;
-    [[42,62],[57,62],[72,62],[172,62],[187,62],[202,62]].forEach(([wx,wy])=>{
-      ctx.fillRect(ox+wx,baseY-wy,11,16);
+    [[42,62],[57,62],[72,62],[172,62],[187,62],[202,62],
+     [42,38],[57,38],[72,38],[172,38],[187,38],[202,38]].forEach(([wx,wy])=>{
+      ctx.fillRect(ox+wx,baseY-wy,11,14);
     });
 
-    // 굴뚝
-    ctx.fillStyle='#162838';
-    ctx.fillRect(ox+118,baseY-210,24,108);
-    ctx.beginPath(); ctx.arc(ox+130,baseY-210,14,Math.PI,0); ctx.fill();
+    // ── 굴뚝 2개
+    [[118,210],[240,178]].forEach(([cxx,ch])=>{
+      ctx.fillStyle='#162838';
+      ctx.fillRect(ox+cxx,baseY-ch,24,ch);
+      ctx.beginPath(); ctx.arc(ox+cxx+12,baseY-ch,14,Math.PI,0); ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,0.10)';           // 하이라이트
+      ctx.fillRect(ox+cxx+3,baseY-ch,5,ch);
+      // 빨간 줄무늬 (항공 표식)
+      ctx.fillStyle='rgba(200,60,50,0.55)';
+      ctx.fillRect(ox+cxx,baseY-ch+12,24,10);
+      ctx.fillRect(ox+cxx,baseY-ch+40,24,10);
+      // 연기
+      for(let s=0;s<5;s++){
+        const t=((frameCount*0.018)+s*0.22)%1;
+        const sy=baseY-ch-18-t*80;
+        const sr=7+t*14;
+        const sx=Math.sin(frameCount*0.025+s*1.4)*10;
+        ctx.globalAlpha=0.16*(1-t);
+        ctx.fillStyle='#90a8bb';
+        ctx.beginPath(); ctx.arc(ox+cxx+12+sx,sy,sr,0,Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha=1;
+    });
 
-    // 연기 애니메이션
-    for(let s=0;s<5;s++){
-      const t=((frameCount*0.018)+s*0.22)%1;
-      const sy=baseY-228-t*80;
-      const sr=7+t*14;
-      const sx=Math.sin(frameCount*0.025+s*1.4)*10;
-      ctx.globalAlpha=0.18*(1-t);
-      ctx.fillStyle='#90a8bb';
-      ctx.beginPath(); ctx.arc(ox+130+sx,sy,sr,0,Math.PI*2); ctx.fill();
-    }
-    ctx.globalAlpha=1;
-
-    // 용광로 본체
+    // ── 용광로 본체
     ctx.fillStyle='#18283a';
     ctx.fillRect(ox+315,baseY-175,65,175);
     ctx.beginPath(); ctx.arc(ox+348,baseY-175,33,Math.PI,0); ctx.fill();
+    // 몸통 배관 링
+    ctx.strokeStyle='rgba(70,100,130,0.5)'; ctx.lineWidth=2;
+    [40,80,120].forEach(ry=>{
+      ctx.beginPath(); ctx.moveTo(ox+315,baseY-ry); ctx.lineTo(ox+380,baseY-ry); ctx.stroke();
+    });
     const gt=0.4+Math.sin(frameCount*0.07)*0.22;
     ctx.strokeStyle=`rgba(255,140,30,${gt})`; ctx.lineWidth=4;
     ctx.beginPath(); ctx.arc(ox+348,baseY-175,33,Math.PI,0); ctx.stroke();
     ctx.fillStyle=`rgba(255,80,10,${0.25+Math.sin(frameCount*0.09)*0.1})`;
     ctx.beginPath(); ctx.arc(ox+348,baseY-175,22,Math.PI,0); ctx.fill();
 
+    // 용광로 스파크 (불똥 튐)
+    for(let s=0;s<6;s++){
+      const t=((frameCount*0.03)+s*0.167)%1;
+      const ang=-Math.PI/2 + Math.sin(s*2.7)*0.8;
+      const dist=t*46;
+      const px2=ox+348+Math.cos(ang)*dist + Math.sin(frameCount*0.1+s)*4;
+      const py2=baseY-175+Math.sin(ang)*dist + t*t*30;   // 포물선 낙하
+      ctx.globalAlpha=(1-t)*0.9;
+      ctx.fillStyle= t<0.4 ? '#ffdd66' : '#ff8833';
+      ctx.fillRect(px2,py2,2.5,2.5);
+    }
+    ctx.globalAlpha=1;
+
     // 파이프라인
     ctx.strokeStyle='#18283a'; ctx.lineWidth=9;
-    ctx.beginPath(); ctx.moveTo(ox+295,baseY-55); ctx.lineTo(ox+415,baseY-55); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox+295,baseY-55); ctx.lineTo(ox+430,baseY-55); ctx.stroke();
     ctx.lineWidth=5;
-    ctx.beginPath(); ctx.moveTo(ox+295,baseY-35); ctx.lineTo(ox+415,baseY-35); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox+295,baseY-35); ctx.lineTo(ox+430,baseY-35); ctx.stroke();
     [ox+340,ox+370,ox+400].forEach(px=>{
       ctx.fillStyle='#1e3248';
       ctx.beginPath(); ctx.arc(px,baseY-55,7,0,Math.PI*2); ctx.fill();
     });
 
-    // POSCO 간판
+    // ── 냉각탑 (허리 잘록한 실루엣) + 수증기
+    const cwX=ox+455;
+    ctx.fillStyle='#15263a';
+    ctx.beginPath();
+    ctx.moveTo(cwX,baseY);
+    ctx.bezierCurveTo(cwX+14,baseY-70, cwX+14,baseY-95, cwX+8,baseY-140);
+    ctx.lineTo(cwX+72,baseY-140);
+    ctx.bezierCurveTo(cwX+66,baseY-95, cwX+66,baseY-70, cwX+80,baseY);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.07)';
+    ctx.beginPath();
+    ctx.moveTo(cwX+8,baseY);
+    ctx.bezierCurveTo(cwX+20,baseY-70, cwX+20,baseY-95, cwX+15,baseY-140);
+    ctx.lineTo(cwX+26,baseY-140);
+    ctx.bezierCurveTo(cwX+22,baseY-95, cwX+22,baseY-70, cwX+32,baseY);
+    ctx.closePath(); ctx.fill();
+    // 수증기 (연기보다 크고 하얗게)
+    for(let s=0;s<4;s++){
+      const t=((frameCount*0.012)+s*0.25)%1;
+      ctx.globalAlpha=0.13*(1-t);
+      ctx.fillStyle='#c8d8e8';
+      ctx.beginPath();
+      ctx.arc(cwX+40+Math.sin(frameCount*0.02+s*2)*14, baseY-150-t*70, 12+t*20, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.globalAlpha=1;
+
+    // ── 보조 공장동 (창고형)
+    ctx.fillStyle='#16283a';
+    ctx.fillRect(ox+560,baseY-78,130,78);
+    ctx.beginPath();                                    // 반원 지붕
+    ctx.arc(ox+625,baseY-78,65,Math.PI,0); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.05)';
+    ctx.beginPath(); ctx.arc(ox+625,baseY-78,65,Math.PI,Math.PI*1.35); ctx.lineTo(ox+625,baseY-78); ctx.fill();
+    // 셔터 문 + 안에서 새는 불빛
+    ctx.fillStyle='#0e1c29';
+    ctx.fillRect(ox+595,baseY-52,60,52);
+    ctx.fillStyle=`rgba(255,150,40,${0.3+Math.sin(frameCount*0.05)*0.12})`;
+    ctx.fillRect(ox+595,baseY-6,60,6);
+    ctx.strokeStyle='rgba(70,100,130,0.4)'; ctx.lineWidth=1.5;
+    for(let d2=1;d2<4;d2++){
+      ctx.beginPath(); ctx.moveTo(ox+595,baseY-52+d2*12); ctx.lineTo(ox+655,baseY-52+d2*12); ctx.stroke();
+    }
+
+    // ── 갠트리 크레인 (항만 크레인 실루엣)
+    ctx.strokeStyle='#20364c'; ctx.lineWidth=5;
+    const crX=ox+820;
+    ctx.beginPath();
+    ctx.moveTo(crX,baseY); ctx.lineTo(crX,baseY-130);                 // 기둥
+    ctx.lineTo(crX-75,baseY-108);                                     // 지브(팔)
+    ctx.moveTo(crX,baseY-95); ctx.lineTo(crX-48,baseY-101);           // 타이바
+    ctx.stroke();
+    ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(crX-62,baseY-110); ctx.lineTo(crX-62,baseY-62); ctx.stroke();  // 케이블
+    ctx.fillStyle='#20364c';
+    ctx.fillRect(crX-70,baseY-62,17,13);                              // 매달린 컨테이너
+    ctx.fillStyle=`rgba(255,60,60,${0.35+0.55*Math.abs(Math.sin(frameCount*0.05+1.3))})`;
+    ctx.beginPath(); ctx.arc(crX,baseY-132,3,0,Math.PI*2); ctx.fill();
+
+    // ── POSCO 간판 (옥상 광고판 스타일 + 글로우)
+    ctx.save();
+    ctx.strokeStyle='#0e1c29'; ctx.lineWidth=3;                        // 받침 다리
+    ctx.beginPath();
+    ctx.moveTo(ox+80,baseY-128);  ctx.lineTo(ox+80,baseY-140);
+    ctx.moveTo(ox+165,baseY-128); ctx.lineTo(ox+165,baseY-140);
+    ctx.stroke();
+    ctx.shadowColor='rgba(60,130,255,0.7)'; ctx.shadowBlur=14;
     ctx.fillStyle='#003087';
-    roundRect(ctx,ox+65,baseY-93,115,34,5); ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=1.5;
-    roundRect(ctx,ox+67,baseY-91,111,30,4); ctx.stroke();
+    roundRect(ctx,ox+58,baseY-176,130,38,6); ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.strokeStyle='rgba(255,255,255,0.45)'; ctx.lineWidth=1.5;
+    roundRect(ctx,ox+61,baseY-173,124,32,5); ctx.stroke();
     ctx.fillStyle='white';
-    ctx.font='bold 20px "Impact","Arial Black",sans-serif';
+    ctx.font='bold 22px "Impact","Arial Black",sans-serif';
     ctx.textAlign='center';
     ctx.textBaseline='middle';
-    ctx.fillText('POSCO',ox+123,baseY-76);
+    ctx.fillText('POSCO',ox+123,baseY-156);
     ctx.textBaseline='alphabetic';
+    ctx.restore();
 
     // 바닥 레일
     ctx.strokeStyle='#1a2e42'; ctx.lineWidth=3;
@@ -2248,9 +2420,31 @@ function drawStage2Decorations(groundY) {
     ctx.stroke();
   }
 
+  // 나비 2마리 (8자 곡선으로 팔랑팔랑)
+  ctx.globalAlpha = 0.9;
+  [{cx:88, cy:groundY-190, col:'#ff8fb8', ph:0}, {cx:300, cy:groundY-158, col:'#a5b8ff', ph:2.4}]
+    .forEach(bf => {
+      const t = frameCount * 0.02 + bf.ph;
+      const bx2 = bf.cx + Math.sin(t) * 30;
+      const by2 = bf.cy + Math.sin(t * 2) * 13;
+      const flap = Math.abs(Math.sin(frameCount * 0.22 + bf.ph));   // 날갯짓
+      ctx.save();
+      ctx.translate(bx2, by2);
+      ctx.fillStyle = bf.col;
+      ctx.beginPath(); ctx.ellipse(-5, 0, 6, 4.5 + flap * 3.5, -0.5, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse( 5, 0, 6, 4.5 + flap * 3.5,  0.5, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#6a4a3a';
+      ctx.fillRect(-1.2, -4, 2.4, 9);
+      ctx.restore();
+    });
+
   ctx.restore();
 }
 
+/* ── Stage 2: 내품에 어린이집 (외할머니가 원장님이던 곳) ──
+   컨셉: '내 품에' = 품에 안아주는 따뜻한 곳.
+   추가: 지붕 깃발 가랜드, 하트 달린 간판, 창가 화분,
+         빈 구간에 그네·미끄럼틀 놀이터, 바닥 꽃          */
 function drawKindergarten(baseY) {
   const patW = 620;
   const off = Math.floor(((bgFarX || 0) * 0.55) % patW);
@@ -2265,10 +2459,21 @@ function drawKindergarten(baseY) {
     ctx.beginPath(); ctx.arc(ox + 15, baseY - 92, 30, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#6BD36E';
     ctx.beginPath(); ctx.arc(ox + 15, baseY - 103, 20, 0, Math.PI * 2); ctx.fill();
+    // 나무에 사과 3개
+    ctx.fillStyle = '#ff5a52';
+    [[-14,-96],[6,-108],[13,-88]].forEach(([dx,dy])=>{
+      ctx.beginPath(); ctx.arc(ox + 15 + dx, baseY + dy, 4, 0, Math.PI*2); ctx.fill();
+    });
 
-    // 건물 벽
-    ctx.fillStyle = '#FFF6DF';
+    // 건물 벽 (위->아래 은은한 크림 그라데이션)
+    const wall = ctx.createLinearGradient(0, baseY - 135, 0, baseY);
+    wall.addColorStop(0, '#FFFAEB');
+    wall.addColorStop(1, '#FBEECB');
+    ctx.fillStyle = wall;
     ctx.fillRect(ox + 72, baseY - 135, 215, 135);
+    // 벽 아래 파스텔 띠
+    ctx.fillStyle = '#FFDFA8';
+    ctx.fillRect(ox + 72, baseY - 20, 215, 20);
 
     // 지붕
     ctx.fillStyle = '#F26732';
@@ -2278,12 +2483,41 @@ function drawKindergarten(baseY) {
     ctx.lineTo(ox + 307, baseY - 135);
     ctx.closePath();
     ctx.fill();
+    // 지붕 하이라이트
+    ctx.fillStyle = 'rgba(255,255,255,0.14)';
+    ctx.beginPath();
+    ctx.moveTo(ox + 52, baseY - 135);
+    ctx.lineTo(ox + 180, baseY - 218);
+    ctx.lineTo(ox + 196, baseY - 207);
+    ctx.lineTo(ox + 76, baseY - 135);
+    ctx.closePath(); ctx.fill();
 
     ctx.fillStyle = '#C94A22';
     ctx.fillRect(ox + 132, baseY - 226, 24, 52);
     ctx.fillRect(ox + 128, baseY - 232, 32, 8);
 
-    // 간판
+    // 깃발 가랜드 (지붕 처마를 따라 알록달록)
+    const gCols = ['#ff6b8a','#ffd166','#5ee074','#5ecbff','#c39bff'];
+    ctx.strokeStyle = 'rgba(140,90,50,0.6)'; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(ox + 60, baseY - 132);
+    ctx.quadraticCurveTo(ox + 180, baseY - 108, ox + 300, baseY - 132);
+    ctx.stroke();
+    for (let f = 0; f < 8; f++) {
+      const ft = 0.08 + f * 0.12;
+      // 줄 위 위치 근사 (2차 베지어)
+      const fx = (1-ft)*(1-ft)*(ox+60) + 2*(1-ft)*ft*(ox+180) + ft*ft*(ox+300);
+      const fy = (1-ft)*(1-ft)*(baseY-132) + 2*(1-ft)*ft*(baseY-108) + ft*ft*(baseY-132);
+      const sway = Math.sin(frameCount * 0.05 + f) * 1.5;
+      ctx.fillStyle = gCols[f % gCols.length];
+      ctx.beginPath();
+      ctx.moveTo(fx - 6, fy);
+      ctx.lineTo(fx + 6, fy);
+      ctx.lineTo(fx + sway, fy + 12);
+      ctx.closePath(); ctx.fill();
+    }
+
+    // 간판 (+ 양쪽 하트: '내품에' 컨셉)
     ctx.fillStyle = '#FF6FA8';
     stage2SafeRoundRect(ctx, ox + 92, baseY - 166, 176, 30, 10);
     ctx.fill();
@@ -2297,6 +2531,23 @@ function drawKindergarten(baseY) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('내품에 어린이집', ox + 180, baseY - 151);
+
+    // 간판 양옆 두근두근 하트
+    function heart(hx, hy, s, phase) {
+      const beat = 1 + Math.sin(frameCount * 0.08 + phase) * 0.12;
+      ctx.save();
+      ctx.translate(hx, hy);
+      ctx.scale(s * beat, s * beat);
+      ctx.fillStyle = '#ff4f7e';
+      ctx.beginPath();
+      ctx.moveTo(0, 3);
+      ctx.bezierCurveTo(-6, -3, -12, 1, 0, 10);
+      ctx.bezierCurveTo(12, 1, 6, -3, 0, 3);
+      ctx.fill();
+      ctx.restore();
+    }
+    heart(ox + 82, baseY - 156, 1.15, 0);
+    heart(ox + 278, baseY - 156, 1.15, 1.6);
 
     function win(wx, wy) {
       ctx.fillStyle = '#5EA4D0';
@@ -2313,6 +2564,16 @@ function drawKindergarten(baseY) {
     win(96, 112);
     win(220, 112);
     win(96, 62);
+
+    // 창가 화분 (창문 아래 알록달록)
+    [[96,112],[220,112],[96,62]].forEach(([wx,wy])=>{
+      ctx.fillStyle = '#B06A3A';
+      ctx.fillRect(ox + wx - 3, baseY - wy + 44, 51, 8);
+      ['#ff6b8a','#ffd166','#ff9fe0'].forEach((c,i)=>{
+        ctx.fillStyle = c;
+        ctx.beginPath(); ctx.arc(ox + wx + 8 + i*15, baseY - wy + 42, 4, 0, Math.PI*2); ctx.fill();
+      });
+    });
 
     // 문
     ctx.fillStyle = '#7D4E2C';
@@ -2338,6 +2599,61 @@ function drawKindergarten(baseY) {
       ctx.lineTo(px + 7, baseY - 30);
       ctx.closePath();
       ctx.fill();
+    }
+
+    /* ── 놀이터 (건물 옆 빈 구간 ox+340~600) ── */
+
+    // 그네 — A자 프레임 + 흔들리는 그네줄
+    const sgX = ox + 395, sgTop = baseY - 92;
+    ctx.strokeStyle = '#E7903C'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(sgX - 34, baseY); ctx.lineTo(sgX, sgTop);
+    ctx.lineTo(sgX + 34, baseY);
+    ctx.moveTo(sgX, sgTop); ctx.lineTo(sgX + 78, sgTop);
+    ctx.moveTo(sgX + 78, sgTop); ctx.lineTo(sgX + 44, baseY);
+    ctx.moveTo(sgX + 78, sgTop); ctx.lineTo(sgX + 112, baseY);
+    ctx.stroke();
+    ctx.lineCap = 'butt';
+    // 그네줄 + 앉는 판 (살랑살랑)
+    const swing = Math.sin(frameCount * 0.04) * 9;
+    ctx.strokeStyle = '#8A6A4A'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(sgX + 30, sgTop + 2); ctx.lineTo(sgX + 30 + swing, baseY - 26);
+    ctx.moveTo(sgX + 50, sgTop + 2); ctx.lineTo(sgX + 50 + swing, baseY - 26);
+    ctx.stroke();
+    ctx.fillStyle = '#D8543E';
+    ctx.fillRect(sgX + 25 + swing, baseY - 27, 30, 6);
+
+    // 미끄럼틀 — 사다리 + 노란 슬라이드
+    const slX = ox + 540;
+    ctx.fillStyle = '#E06030'; ctx.fillRect(slX, baseY - 86, 12, 86);       // 사다리 기둥
+    ctx.strokeStyle = '#B84020'; ctx.lineWidth = 2.5;
+    for (let g2 = 0; g2 < 5; g2++) {
+      ctx.beginPath();
+      ctx.moveTo(slX - 4, baseY - 14 - g2 * 15);
+      ctx.lineTo(slX + 16, baseY - 14 - g2 * 15);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#E06030'; ctx.fillRect(slX - 4, baseY - 92, 34, 10);   // 꼭대기 발판
+    ctx.fillStyle = '#FFD700';                                              // 슬라이드 면
+    ctx.beginPath();
+    ctx.moveTo(slX + 26, baseY - 86);
+    ctx.lineTo(slX + 86, baseY - 2);
+    ctx.lineTo(slX + 102, baseY - 2);
+    ctx.lineTo(slX + 42, baseY - 86);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#E8B800'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(slX + 26, baseY - 86); ctx.lineTo(slX + 86, baseY - 2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(slX + 42, baseY - 86); ctx.lineTo(slX + 102, baseY - 2); ctx.stroke();
+
+    // 놀이터 바닥 꽃
+    const kfCols = ['#ff6b8a', '#ffd166', '#ff9fe0', '#8fc7ff'];
+    for (let fi = 0; fi < 7; fi++) {
+      const fx = ox + 330 + fi * 42;
+      ctx.fillStyle = '#4CAF50';
+      ctx.fillRect(fx - 1, baseY - 9, 2, 9);
+      ctx.fillStyle = kfCols[fi % kfCols.length];
+      ctx.beginPath(); ctx.arc(fx, baseY - 11, 3.5, 0, Math.PI * 2); ctx.fill();
     }
   }
 }

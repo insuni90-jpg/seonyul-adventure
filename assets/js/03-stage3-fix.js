@@ -276,13 +276,32 @@
     ctx.fillRect(cx-23, towerY-52, 46, 10);
     ctx.shadowBlur = 0;
 
-    // 종탑 원형창: 간판과 겹치지 않도록 위로 이동
-    ctx.fillStyle = '#67add6';
-    ctx.beginPath(); ctx.arc(cx, towerY+66, 16, 0, Math.PI*2); ctx.fill();
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(cx-12,towerY+66); ctx.lineTo(cx+12,towerY+66); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx,towerY+54); ctx.lineTo(cx,towerY+78); ctx.stroke();
+    // 종탑 장미창 (스테인드글라스) — 8조각 색유리 + 은은한 빛
+    const roseY = towerY+66, roseR = 17;
+    const roseCols = ['#ff7d95','#ffc76b','#7ee081','#6fc3ff','#b79bff','#ff9de2','#8de6d2','#ffb27d'];
+    ctx.save();
+    ctx.shadowColor = 'rgba(255,240,170,0.7)';
+    ctx.shadowBlur = 10 + Math.sin(frameCount*0.05)*4;
+    ctx.fillStyle = '#fff6d8';
+    ctx.beginPath(); ctx.arc(cx, roseY, roseR+3, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+    for(let seg=0; seg<8; seg++){
+      ctx.fillStyle = roseCols[seg];
+      ctx.beginPath();
+      ctx.moveTo(cx, roseY);
+      ctx.arc(cx, roseY, roseR, seg*Math.PI/4, (seg+1)*Math.PI/4);
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.strokeStyle = '#f5efd8'; ctx.lineWidth = 2;
+    for(let seg=0; seg<8; seg++){
+      const a = seg*Math.PI/4;
+      ctx.beginPath(); ctx.moveTo(cx, roseY);
+      ctx.lineTo(cx+Math.cos(a)*roseR, roseY+Math.sin(a)*roseR); ctx.stroke();
+    }
+    ctx.beginPath(); ctx.arc(cx, roseY, roseR, 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle = '#fff3b8';
+    ctx.beginPath(); ctx.arc(cx, roseY, 4.5, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
 
     // 간판
     ctx.fillStyle = '#1f5a35';
@@ -311,22 +330,43 @@
     ctx.beginPath(); ctx.arc(cx-15, doorY+48, 4, 0, Math.PI*2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx+15, doorY+48, 4, 0, Math.PI*2); ctx.fill();
 
+    // 아치형 스테인드글라스 창 — 4색 유리 + 위쪽 반원
     function windowBlock(x,y,w,h){
-      ctx.fillStyle = '#5da6cf';
-      stage3RoundRect(x,y,w,h,4,true,false);
-      ctx.fillStyle = '#d9f4ff';
-      ctx.fillRect(x+5,y+5,w/2-8,h/2-7);
-      ctx.fillRect(x+w/2+3,y+5,w/2-8,h/2-7);
-      ctx.fillRect(x+5,y+h/2+3,w/2-8,h/2-8);
-      ctx.fillRect(x+w/2+3,y+h/2+3,w/2-8,h/2-8);
+      const glassCols = ['#ffb1c1','#a8d8ff','#ffe09a','#b3e6a8'];
+      const archR = w/2;
+      // 프레임 (아치)
+      ctx.fillStyle = '#c9b98f';
+      ctx.beginPath(); ctx.arc(x+w/2, y, archR+3, Math.PI, 0); ctx.fill();
+      ctx.fillRect(x-3, y, w+6, h+3);
+      // 유리 4분할
+      ctx.fillStyle = glassCols[0]; ctx.fillRect(x, y, w/2, h/2);
+      ctx.fillStyle = glassCols[1]; ctx.fillRect(x+w/2, y, w/2, h/2);
+      ctx.fillStyle = glassCols[2]; ctx.fillRect(x, y+h/2, w/2, h/2);
+      ctx.fillStyle = glassCols[3]; ctx.fillRect(x+w/2, y+h/2, w/2, h/2);
+      // 아치 반원 유리 (좌/우 색 다르게)
+      ctx.fillStyle = '#d9c8ff';
+      ctx.beginPath(); ctx.arc(x+w/2, y, archR, Math.PI, Math.PI*1.5); ctx.lineTo(x+w/2,y); ctx.fill();
+      ctx.fillStyle = '#ffd9b8';
+      ctx.beginPath(); ctx.arc(x+w/2, y, archR, Math.PI*1.5, 0); ctx.lineTo(x+w/2,y); ctx.fill();
+      // 유리 빛 반사 (사선 하이라이트)
+      ctx.save();
+      ctx.globalAlpha = 0.28;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(x+4, y+h); ctx.lineTo(x+w*0.42, y-archR*0.5);
+      ctx.lineTo(x+w*0.62, y-archR*0.5); ctx.lineTo(x+w*0.24, y+h);
+      ctx.closePath(); ctx.fill();
+      ctx.restore();
+      // 창살
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(x+w/2,y+5); ctx.lineTo(x+w/2,y+h-5); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(x+5,y+h/2); ctx.lineTo(x+w-5,y+h/2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x+w/2, y-archR); ctx.lineTo(x+w/2, y+h-2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x+2, y+h/2); ctx.lineTo(x+w-2, y+h/2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x+w, y); ctx.stroke();
     }
 
-    windowBlock(bodyX+32, bodyY+100, 58, 66);
-    windowBlock(bodyX+bodyW-90, bodyY+100, 58, 66);
+    windowBlock(bodyX+32, bodyY+112, 58, 54);
+    windowBlock(bodyX+bodyW-90, bodyY+112, 58, 54);
 
     // 꽃밭과 울타리
     ctx.fillStyle = '#ffffff';
@@ -366,6 +406,28 @@
     ctx.fillStyle = sky;
     ctx.fillRect(0,0,W,gTop);
 
+    /* 하늘에서 내리는 빛줄기 (은혜 컨셉) — 교회 십자가를 향해 넓게 퍼짐 */
+    ctx.save();
+    const rayCx = W/2;
+    [[-0.42,0.10],[-0.18,0.13],[0.06,0.11],[0.30,0.13],[0.52,0.09]].forEach(([ang,alpha],i)=>{
+      const sway = Math.sin(frameCount*0.008 + i*1.3) * 0.045;   // 아주 천천히 흔들림
+      const a = ang + sway;
+      const topX = rayCx + a*140;
+      const w1 = 14, w2 = 58;                                     // 위 좁고 아래 넓게
+      const grad = ctx.createLinearGradient(0,0,0,gTop);
+      grad.addColorStop(0, 'rgba(255,246,190,'+(alpha+0.10)+')');
+      grad.addColorStop(1, 'rgba(255,246,190,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(topX-w1, -10);
+      ctx.lineTo(topX+w1, -10);
+      ctx.lineTo(topX + a*260 + w2, gTop);
+      ctx.lineTo(topX + a*260 - w2, gTop);
+      ctx.closePath();
+      ctx.fill();
+    });
+    ctx.restore();
+
     // 구름
     ctx.save();
     ctx.globalAlpha = 0.82;
@@ -376,6 +438,34 @@
     ctx.globalAlpha = 0.55;
     [[44,190,12],[64,184,17],[88,194,13],[310,174,14],[334,166,20],[360,178,14]].forEach(([x,y,r])=>{
       ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+    });
+    ctx.restore();
+
+    // 흰 비둘기 2마리 (평화의 상징 — 하늘을 가로질러 활강)
+    ctx.save();
+    [{y:120,spd:0.34,off:0,s:1.0},{y:150,spd:0.26,off:230,s:0.78}].forEach(dv=>{
+      const dx = ((frameCount*dv.spd + dv.off) % (W+140)) - 70;
+      const dy = dv.y + Math.sin(frameCount*0.03 + dv.off)*7;
+      const flap = Math.sin(frameCount*0.16 + dv.off)*0.8;
+      ctx.translate(dx,dy); ctx.scale(dv.s,dv.s);
+      // 몸통
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.ellipse(0,0,11,5.5,0.1,0,Math.PI*2); ctx.fill();
+      // 머리+부리
+      ctx.beginPath(); ctx.arc(10,-3,4,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#f0a030';
+      ctx.beginPath(); ctx.moveTo(13.5,-3.5); ctx.lineTo(17,-2.5); ctx.lineTo(13.5,-1.2); ctx.closePath(); ctx.fill();
+      // 날개 (퍼덕)
+      ctx.fillStyle = '#f4f8ff';
+      ctx.beginPath();
+      ctx.moveTo(-2,-2);
+      ctx.quadraticCurveTo(-6,-14-flap*8, -16,-9-flap*10);
+      ctx.quadraticCurveTo(-8,-3, -2,1);
+      ctx.closePath(); ctx.fill();
+      // 꼬리
+      ctx.fillStyle = '#e8eef8';
+      ctx.beginPath(); ctx.moveTo(-9,-1); ctx.lineTo(-17,-4); ctx.lineTo(-16,3); ctx.closePath(); ctx.fill();
+      ctx.setTransform(1,0,0,1,0,0);
     });
     ctx.restore();
 
