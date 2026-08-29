@@ -22,7 +22,7 @@
     if (muteBtn) {
       muteBtn.style.display = 'flex';
       muteBtn.style.pointerEvents = 'auto';
-      muteBtn.style.zIndex = '99999';
+      muteBtn.style.removeProperty('z-index');
     }
   }
 

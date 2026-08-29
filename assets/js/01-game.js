@@ -2735,8 +2735,10 @@ function drawObstacles() {
     } else {
       console.log('[OFC] directScreen: element NOT FOUND:', id);
     }
+    // z-index는 CSS(#muteBtn)에서만 관리한다.
+    // 여기서 인라인으로 80을 주면 화면 오버레이(z-index:100)에 가려져 버린다.
     const mb = q('muteBtn');
-    if (mb) { mb.style.display='flex'; mb.style.zIndex='80'; }
+    if (mb) { mb.style.display='flex'; mb.style.removeProperty('z-index'); }
     const hud = q('hud');
     if (hud && id !== null) { hud.classList.add('hidden'); hud.style.display='none'; }
     if (id === 'stageSelectScreen') setTimeout(applyClearStamps, 0);
@@ -3185,7 +3187,7 @@ function drawStage2Decorations(groundY) {
     if (hud) hud.style.setProperty('display', 'none', 'important');
     // MuteBtn 유지
     var mb = document.getElementById('muteBtn');
-    if (mb) { mb.style.display = 'flex'; mb.style.zIndex = '99999'; }
+    if (mb) { mb.style.display = 'flex'; mb.style.removeProperty('z-index'); }
     console.log('[DirectNav] forceShow:', id,
       '| computed:', window.getComputedStyle(el).display,
       '| z-index:', window.getComputedStyle(el).zIndex);

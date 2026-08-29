@@ -86,6 +86,18 @@
       touchControls.classList.add('stage3-mode');
       touchBtns[0].textContent = '⬅️';
       touchBtns[1].textContent = '➡️';
+    } else {
+      /* 스테이지3를 벗어나면 반드시 원상복구할 것.
+         예전에는 이 else가 없어서 한 번 스테이지3를 하고 나면
+         - 스테이지1에서도 좌/우 화살표가 그대로 남고
+         - stage3-mode의 display:flex가 .hidden을 이겨서
+           탭으로만 조작하는 스테이지2에서도 버튼이 계속 보였다. */
+      touchControls.classList.remove('stage3-mode');
+      touchBtns[0].textContent = '⬆️';
+      touchBtns[1].textContent = '⬇️';
+      if(typeof currentGame !== 'undefined' && currentGame === 2){
+        touchControls.classList.add('hidden');   // 스테이지2는 화면 탭으로만 점프
+      }
     }
   }
 

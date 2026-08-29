@@ -25,7 +25,8 @@
   @keyframes pulsBtn{0%,100%{transform:scale(1);box-shadow:0 6px 20px rgba(57,231,95,.5),0 0 0 3px rgba(255,255,255,.2)}50%{transform:scale(1.05);box-shadow:0 8px 30px rgba(57,231,95,.8),0 0 0 6px rgba(255,255,255,.3)}}
 
   /* HUD */
-  #hud{position:absolute;top:0;left:0;right:0;padding:10px 12px 6px;display:flex;justify-content:space-between;align-items:center;z-index:8;background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,transparent 100%);}
+  /* 우측 상단은 스피커 버튼 자리이므로 그만큼 비워둔다 */
+  #hud{position:absolute;top:0;left:0;right:0;padding:10px 58px 6px 12px;display:flex;justify-content:space-between;align-items:center;z-index:8;background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,transparent 100%);}
   
 
   /* 타이머 */
@@ -46,7 +47,7 @@
   
 
   /* STAGE INTRO */
-  #stageIntroScreen{background:linear-gradient(170deg,#0f0c29,#1a2a4a);}
+  #stageIntroScreen{background:linear-gradient(170deg,#0f0c29,#1a2a4a);padding:0 20px;}
   .intro-stage-badge{background:linear-gradient(135deg,#f093fb,#f5576c);border-radius:50px;padding:8px 28px;font-size:20px;color:white;margin-bottom:12px;box-shadow:0 4px 15px rgba(240,93,251,.5);animation:badgePop .5s cubic-bezier(.175,.885,.32,1.275) both;position:relative;z-index:2;}
   @keyframes badgePop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
 
@@ -60,29 +61,29 @@
 
   .intro-scene-img{width:300px;max-height:390px;object-fit:contain;filter:drop-shadow(0 10px 30px rgba(79,195,247,.3));animation:sceneIn .6s .1s cubic-bezier(.175,.885,.32,1.275) both;position:relative;z-index:2;}
   @keyframes sceneIn{from{transform:scale(.85) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
-  .intro-comment-box{background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);border:1.5px solid rgba(255,255,255,0.25);border-radius:20px;padding:10px 22px;text-align:center;margin-top:-2px;animation:sceneIn .6s .35s both;box-shadow:0 4px 20px rgba(79,195,247,0.15);position:relative;z-index:2;}
-  .intro-comment-line1{font-size:17px;color:#f0c040;text-shadow:0 0 10px rgba(240,192,64,.6);margin-bottom:3px;}
+  .intro-comment-box{background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);border:1.5px solid rgba(255,255,255,0.25);border-radius:20px;padding:12px 24px;text-align:center;margin-top:6px;animation:sceneIn .6s .35s both;box-shadow:0 4px 20px rgba(79,195,247,0.15);position:relative;z-index:2;}
+  .intro-comment-line1{font-size:17px;color:#f0c040;text-shadow:0 0 10px rgba(240,192,64,.6);margin-bottom:5px;}
   .intro-comment-line2{font-size:14px;color:rgba(255,255,255,.85);}
-  .go-btn{background:linear-gradient(135deg,#fd7272,#ee5a24);border:none;border-radius:50px;padding:14px 48px;font-family:'Jua',sans-serif;font-size:22px;color:white;cursor:pointer;box-shadow:0 6px 20px rgba(238,90,36,.5);animation:pulsBtn 1.5s ease-in-out infinite;position:relative;z-index:2;margin-top:10px;}
+  .go-btn{background:linear-gradient(135deg,#fd7272,#ee5a24);border:none;border-radius:50px;padding:14px 48px;font-family:'Jua',sans-serif;font-size:22px;color:white;cursor:pointer;box-shadow:0 6px 20px rgba(238,90,36,.5);animation:pulsBtn 1.5s ease-in-out infinite;position:relative;z-index:2;margin-top:24px;}
 
   /* STAGE CLEAR */
-  #stageClearScreen{background:radial-gradient(ellipse at center,#1a3a1a 0%,#0a1a0a 100%);}
+  #stageClearScreen{background:radial-gradient(ellipse at center,#1a3a1a 0%,#0a1a0a 100%);padding:0 20px;}
   .clear-confetti{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden;}
   .confetti-piece{position:absolute;border-radius:2px;animation:confettiFall linear infinite;}
   @keyframes confettiFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(900px) rotate(720deg);opacity:0}}
-  .clear-title{font-size:36px;color:#f0c040;text-shadow:0 0 20px rgba(240,192,64,.8);animation:clearPop .5s cubic-bezier(.175,.885,.32,1.275) both;margin-bottom:8px;position:relative;z-index:2;}
+  .clear-title{font-size:36px;color:#f0c040;text-shadow:0 0 20px rgba(240,192,64,.8);animation:clearPop .5s cubic-bezier(.175,.885,.32,1.275) both;margin-bottom:20px;position:relative;z-index:2;}
   @keyframes clearPop{from{transform:scale(0) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0deg);opacity:1}}
   .reunion-big-img{width:280px;max-height:350px;object-fit:contain;filter:drop-shadow(0 10px 30px rgba(240,192,64,.3));animation:clearPop .5s .2s cubic-bezier(.175,.885,.32,1.275) both;position:relative;z-index:2;border-radius:20px;}
-  .reunion-caption{font-size:15px;color:#f0c040;margin-top:6px;margin-bottom:4px;text-shadow:0 0 10px rgba(240,192,64,.5);animation:clearPop .5s .3s cubic-bezier(.175,.885,.32,1.275) both;position:relative;z-index:2;}
-  .next-btn{background:linear-gradient(135deg,#4fc3f7,#0288d1);border:none;border-radius:50px;padding:14px 48px;font-family:'Jua',sans-serif;font-size:22px;color:white;cursor:pointer;box-shadow:0 6px 20px rgba(79,195,247,.5);animation:pulsBtn 1.5s ease-in-out infinite;margin-top:8px;position:relative;z-index:2;}
+  .reunion-caption{font-size:15px;color:#f0c040;margin-top:14px;margin-bottom:4px;text-shadow:0 0 10px rgba(240,192,64,.5);animation:clearPop .5s .3s cubic-bezier(.175,.885,.32,1.275) both;position:relative;z-index:2;}
+  .next-btn{background:linear-gradient(135deg,#4fc3f7,#0288d1);border:none;border-radius:50px;padding:14px 48px;font-family:'Jua',sans-serif;font-size:22px;color:white;cursor:pointer;box-shadow:0 6px 20px rgba(79,195,247,.5);animation:pulsBtn 1.5s ease-in-out infinite;margin-top:26px;position:relative;z-index:2;}
 
   /* GAME OVER */
-  #gameOverScreen{background:radial-gradient(ellipse at center,#2a0a0a 0%,#0a0a0a 100%);}
-  .over-title{font-size:42px;color:#ff5252;text-shadow:0 0 20px rgba(255,82,82,.8);animation:clearPop .5s cubic-bezier(.175,.885,.32,1.275) both;margin-bottom:16px;}
-  .over-sonyul{width:min(74vw,260px);max-height:42dvh;object-fit:contain;filter:drop-shadow(0 4px 16px rgba(0,0,0,.5));animation:sadBounce 1s ease-in-out infinite alternate;margin-bottom:14px;}
+  #gameOverScreen{background:radial-gradient(ellipse at center,#2a0a0a 0%,#0a0a0a 100%);padding:0 20px;}
+  .over-title{font-size:42px;color:#ff5252;text-shadow:0 0 20px rgba(255,82,82,.8);animation:clearPop .5s cubic-bezier(.175,.885,.32,1.275) both;margin-bottom:26px;}
+  .over-sonyul{width:min(74vw,250px);max-height:38dvh;object-fit:contain;filter:drop-shadow(0 4px 16px rgba(0,0,0,.5));animation:sadBounce 1s ease-in-out infinite alternate;margin-bottom:26px;}
   @keyframes sadBounce{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}
-  .over-msg{color:rgba(255,255,255,.7);font-size:18px;margin-bottom:8px;}
-  .over-sub{color:rgba(255,255,255,.45);font-size:14px;margin-bottom:24px;}
+  .over-msg{color:rgba(255,255,255,.75);font-size:18px;margin-bottom:7px;}
+  .over-sub{color:rgba(255,255,255,.45);font-size:14px;margin-bottom:34px;}
   .retry-btn{background:linear-gradient(135deg,#ff7675,#d63031);border:none;border-radius:50px;padding:14px 48px;font-family:'Jua',sans-serif;font-size:22px;color:white;cursor:pointer;box-shadow:0 6px 20px rgba(214,48,49,.5);animation:pulsBtn 1.5s ease-in-out infinite;}
 
   /* ══ FINAL — 엔딩 (게임의 클라이맥스) ══ */
@@ -223,17 +224,22 @@
   #starCount{font-size:14px;color:#f0c040;}
 
 
-  /* 뮤트 버튼 — 우측 하단 */
+  /* 뮤트 버튼 — 우측 상단 고정, 모든 화면에서 항상 보이게.
+     기존에는 우측 하단(z-index:20)이라
+       ① 화면 전환용 오버레이(z-index:100)에 덮여 게임 중에만 보였고
+       ② 하단 조작 버튼과 자리가 겹쳤다.
+     z-index를 오버레이보다 높이고 위치를 상단으로 옮겨 둘 다 해결. */
   #muteBtn{pointer-events:auto;
-    position:absolute; bottom:22px; right:16px;
-    width:44px; height:44px; border-radius:50%;
+    position:absolute; top:9px; right:11px;
+    width:38px; height:38px; border-radius:50%;
     background:rgba(0,0,0,0.45); backdrop-filter:blur(10px);
     border:1.5px solid rgba(255,255,255,0.25);
     display:flex; align-items:center; justify-content:center;
-    font-size:18px; cursor:pointer; z-index:20;
+    font-size:16px; cursor:pointer; z-index:200;
     user-select:none; -webkit-user-select:none;
   }
-  .over-actions{display:flex;flex-direction:column;gap:10px;align-items:center;}
+  /* 버튼끼리 너무 붙어 있어 간격을 넉넉히 (글로우가 있어 더 붙어 보였음) */
+  .over-actions{display:flex;flex-direction:column;gap:18px;align-items:center;}
   .select-game-btn{background:linear-gradient(135deg,#4fc3f7,#0288d1);border:none;border-radius:50px;padding:14px 48px;font-family:'Jua',sans-serif;font-size:22px;color:white;cursor:pointer;box-shadow:0 6px 20px rgba(79,195,247,.5);animation:pulsBtn 1.5s ease-in-out infinite;}
 
 
@@ -294,9 +300,27 @@
 
   #damageFlash{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,50,50,.4);z-index:20;pointer-events:none;opacity:0;transition:opacity .1s;}
   #damageFlash.active{opacity:1;}
-  #touchControls{position:absolute;bottom:28px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:0 18px;z-index:15;pointer-events:none;}
+  /* ── 조작 버튼 ──
+     Stage1: 캐릭터가 화면 왼쪽(x=80)에 고정이라, 위/아래 버튼을
+             오른쪽에 세로로 쌓아 캐릭터를 가리지 않게 한다.
+     Stage3: 캐릭터가 바닥을 좌우로 움직이므로 화면 맨 아래 양끝에 배치. */
+  #touchControls{
+    position:absolute; right:16px; bottom:88px; left:auto;
+    display:flex; flex-direction:column; gap:16px;
+    align-items:center; z-index:15; pointer-events:none;
+  }
   #touchControls.hidden{display:none !important;}
-  .touch-btn{width:88px;height:88px;border-radius:50%;background:rgba(60,80,140,0.72);backdrop-filter:blur(10px);border:2.5px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:30px;cursor:pointer;user-select:none;-webkit-user-select:none;pointer-events:auto !important;touch-action:manipulation;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+  .touch-btn{
+    width:80px;height:80px;border-radius:50%;
+    background:rgba(60,80,140,0.66);backdrop-filter:blur(10px);
+    border:2.5px solid rgba(255,255,255,0.32);
+    display:flex;align-items:center;justify-content:center;
+    font-size:30px;cursor:pointer;user-select:none;-webkit-user-select:none;
+    pointer-events:auto !important;touch-action:manipulation;
+    box-shadow:0 4px 20px rgba(0,0,0,0.4);
+    transition:transform .12s ease, background .12s ease;
+  }
+  .touch-btn:active{transform:scale(.92);background:rgba(90,120,200,0.8);}
 
   .game-card{position:relative;overflow:hidden;}
 
@@ -332,17 +356,19 @@
     text-shadow:0 0 8px rgba(57,231,95,.7);
   }
 
-  /* Stage3 전용 좌우 버튼 모드 */
+  /* Stage3 전용: 좌우 버튼을 화면 맨 아래 양끝으로.
+     예전에는 bottom:112px라 바닥에 선 캐릭터(y 604~694)와 겹쳤다.
+     display는 지정하지 않는다 — 지정하면 .hidden(display:none)을 이겨버려서
+     버튼이 필요 없는 스테이지2에서도 계속 보이게 된다. */
   #touchControls.stage3-mode{
-    display:flex !important;
+    flex-direction:row;
     justify-content:space-between;
     align-items:center;
-    bottom:112px !important; /* 스피커 버튼 위로 올림 */
-    padding:0 28px !important;
-    pointer-events:none;
+    left:0; right:0; bottom:20px;
+    padding:0 20px;
   }
   #touchControls.stage3-mode .touch-btn{
-    width:86px;
-    height:86px;
+    width:84px;
+    height:84px;
     font-size:32px;
   }
