@@ -476,7 +476,8 @@
       else type = 'obstacle';
     }
 
-    const speed = 3.1 + Math.random()*0.8;
+    // 낙하 속도 (난이도 조정: 3.1~3.9 -> 2.5~3.1)
+    const speed = 2.5 + Math.random()*0.6;
 
     if(type === 'obstacle' && milkActive) return;
 
@@ -516,7 +517,8 @@
     player.targetY = player.y;
 
     const now = performance.now();
-    if(now - stage3LastDropAt > 760){
+    // 낙하물 생성 간격 (난이도 조정: 760ms -> 980ms)
+    if(now - stage3LastDropAt > 980){
       stage3LastDropAt = now;
       spawnDrop();
     }

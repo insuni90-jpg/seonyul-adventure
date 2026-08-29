@@ -4,10 +4,15 @@ const W = 390, H = 844;
 
 // ── 스테이지 설정 ─────────────────────────────────────
 // 클리어 조건: 제한 시간 내에 별 N개 전부 수집
+/* 난이도 설정 (아이가 플레이하는 게임이라 여유 있게 조정)
+   speed       : 시작 속도
+   spawnRate   : 장애물 생성 간격(프레임, 60 = 1초). 클수록 드물게 나옴
+   minSpawn    : 가속으로 줄어들 수 있는 최소 간격(= 최대 난이도 한계)
+   starInterval: 별 생성 간격(프레임)                                    */
 const STAGE_CONFIG=[
-  {name:'Stage 1',timeLimit:60,starGoal:5,starInterval:240,speed:4.5,spawnRate:90,minSpawn:60,doubleObs:true, color:'#4fc3f7',speedLines:1,trailCount:4},
-  {name:'Stage 2',timeLimit:60,starGoal:5,starInterval:240,speed:4.5,spawnRate:110,minSpawn:80,doubleObs:false,color:'#f093fb',speedLines:2,trailCount:5},
-  {name:'Stage 3',timeLimit:60,starGoal:5,starInterval:240,speed:4.5,spawnRate:120,minSpawn:80,doubleObs:false,color:'#fdcb6e',speedLines:0,trailCount:3}
+  {name:'Stage 1',timeLimit:60,starGoal:5,starInterval:220,speed:3.6,spawnRate:110,minSpawn:82,doubleObs:true, color:'#4fc3f7',speedLines:1,trailCount:4},
+  {name:'Stage 2',timeLimit:60,starGoal:5,starInterval:220,speed:3.8,spawnRate:120,minSpawn:92,doubleObs:false,color:'#f093fb',speedLines:2,trailCount:5},
+  {name:'Stage 3',timeLimit:60,starGoal:5,starInterval:220,speed:3.6,spawnRate:130,minSpawn:95,doubleObs:false,color:'#fdcb6e',speedLines:0,trailCount:3}
 ];
 
 let gameState = 'title';
@@ -600,12 +605,23 @@ function tBird(tc,x,y,sc,frame){
   tc.restore();
 }
 
-function drawTitleBg(){
+let _titleLastTs = 0;
+function drawTitleBg(ts){
   const el=document.getElementById('titleBgCanvas');
-  if(!el||gameState!=='title'){titleRafId=null;return;}
+  if(!el||gameState!=='title'){titleRafId=null;_titleLastTs=0;return;}
   el.width=390; el.height=844;
   const tc=el.getContext('2d');
-  titleFC++;
+
+  // 타이틀 배경도 주사율에 따라 구름·차선이 빨라지지 않도록 경과 시간 기준으로 진행
+  if(typeof ts === 'number'){
+    if(!_titleLastTs) _titleLastTs = ts;
+    let d = ts - _titleLastTs;
+    _titleLastTs = ts;
+    if(d > 100) d = 100;              // 탭 복귀 시 튐 방지
+    titleFC += d / LOGIC_STEP_MS;     // 60fps 기준 1프레임 = 1
+  } else {
+    titleFC++;
+  }
 
   // ── 하늘 (위→아래: 진파랑→연파랑)
   const sky=tc.createLinearGradient(0,0,0,620);
@@ -785,7 +801,7 @@ function initGame2() {
   game2JumpCount = 0;
   lastStage2JumpAt = 0;
   window.stage2LastObstacleTime = -999;
-  gameSpeed = 4;
+  gameSpeed = STAGE_CONFIG[1].speed;   // 난이도 설정값을 따르도록 (기존 하드코딩 4)
 }
 
 function handleJumpInput() {
@@ -1590,7 +1606,7 @@ function handleInput() {
 }
 
 // ── 메인 루프 ─────────────────────────────────────────
-function update() {
+function update(shouldDraw) {
   if(gameState!=='playing') return;
   frameCount++;
   const vMult = milkActive ? 3.0 : 1.0;   // 분유 시 배경 3배 빠르게 스크롤
@@ -1741,8 +1757,12 @@ function update() {
     }
   });
 
-  // 가속
-  if(frameCount%250===0){gameSpeed+=0.2;if(spawnRate>minSpawn)spawnRate=Math.max(minSpawn,spawnRate-2);}
+  // 가속 — 시간이 지날수록 조금씩 빨라짐 (60프레임 = 1초)
+  // 340프레임(약 5.7초)마다 +0.13. 60초 동안 약 10회 붙어 끝에도 감당 가능한 속도로 유지된다.
+  if(frameCount%340===0){gameSpeed+=0.13;if(spawnRate>minSpawn)spawnRate=Math.max(minSpawn,spawnRate-2);}
+
+  // 한 프레임에 로직을 여러 번 돌릴 때는 마지막 회차에만 그린다 (중복 그리기 방지)
+  if(shouldDraw === false) return;
 
   ctx.clearRect(0,0,W,H);
   drawBackground(); drawSpeedLines(); drawMilkSpeedFX();
@@ -1752,7 +1772,50 @@ function update() {
     drawMilkItems(); updateShockwaves(); drawHearts(); drawCoins(); drawObstacles(); drawPlayer();
   }
   updateParticles();
-  rafId=requestAnimationFrame(update);
+}
+
+/* ═══ 프레임 독립 게임 루프 ═══
+   기존에는 requestAnimationFrame이 부르는 대로 매번 update()를 실행했다.
+   그래서 120Hz 화면(요즘 폰 대부분)에서는 초당 120번 돌아 게임이 정확히 2배 빨라졌다.
+   장애물 속도·생성 빈도·가속까지 전부 2배가 되는데 제한시간(60초)만 그대로라
+   사실상 플레이가 불가능한 난이도가 됐다.
+
+   해결: 실제 경과 시간을 누적해서 로직은 어떤 기기에서든 초당 60번만 실행한다.
+   화면을 그리는 횟수는 기기별로 다를 수 있지만 게임 진행 속도는 항상 동일하다. */
+const LOGIC_HZ = 60;
+const LOGIC_STEP_MS = 1000 / LOGIC_HZ;
+const MAX_CATCHUP_STEPS = 5;   // 렉이 걸려도 한 번에 5회까지만 따라잡음
+let _lastFrameTs = 0, _stepAcc = 0;
+
+function gameLoop(ts) {
+  rafId = requestAnimationFrame(gameLoop);
+  if(gameState !== 'playing') return;
+
+  if(!_lastFrameTs) { _lastFrameTs = ts; return; }
+  let delta = ts - _lastFrameTs;
+  _lastFrameTs = ts;
+
+  // 탭 전환·화면 꺼짐 등으로 크게 벌어진 시간은 잘라낸다 (복귀 시 폭주 방지)
+  if(delta > 250) delta = 250;
+  _stepAcc += delta;
+
+  let steps = 0;
+  while(_stepAcc >= LOGIC_STEP_MS && steps < MAX_CATCHUP_STEPS) {
+    _stepAcc -= LOGIC_STEP_MS;
+    steps++;
+    const isLast = (_stepAcc < LOGIC_STEP_MS || steps === MAX_CATCHUP_STEPS);
+    update(isLast);
+    if(gameState !== 'playing') { _stepAcc = 0; return; }
+  }
+  // 너무 느린 기기에서 밀린 시간이 계속 쌓이지 않도록 버림
+  if(steps >= MAX_CATCHUP_STEPS) _stepAcc = 0;
+}
+
+function startGameLoop() {
+  cancelAnimationFrame(rafId);
+  _lastFrameTs = 0;
+  _stepAcc = 0;
+  rafId = requestAnimationFrame(gameLoop);
 }
 
 // ── 화면 전환 ─────────────────────────────────────────
@@ -1802,8 +1865,7 @@ function startStage() {
   showHUD();
   gameState='playing';
   startTimer();
-  cancelAnimationFrame(rafId);
-  rafId=requestAnimationFrame(update);
+  startGameLoop();
 }
 
 function showStageClear() {
@@ -2045,7 +2107,7 @@ function initGame2() {
   playerOnGround = true;
   game2JumpCount = 0;
   lastStage2JumpAt = 0;
-  gameSpeed = 4;
+  gameSpeed = STAGE_CONFIG[1].speed;   // 난이도 설정값을 따르도록 (기존 하드코딩 4)
   window.stage2LastObstacleTime = -999;
 }
 
